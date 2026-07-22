@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Eaglercraft Launcher</title>
+<title>File Launcher For Eaglercraft</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -454,6 +454,16 @@
   .status-line { margin-top: 10px; font-size: 13px; color: var(--text-dim); }
   .status-line.error { color: var(--danger); }
   .status-line.ok { color: var(--accent-light); }
+  .storage-warning-banner {
+    display: none;
+    background: rgba(198, 91, 79, 0.14);
+    border-bottom: 1px solid var(--danger);
+    color: var(--danger);
+    font-size: 13px;
+    padding: 10px 20px;
+    line-height: 1.5;
+  }
+  .storage-warning-banner strong { display: block; margin-bottom: 2px; }
 
   .installed-list { margin-top: 16px; }
 
@@ -577,6 +587,11 @@
     </div>
   </div>
 
+  <div class="storage-warning-banner" id="storageWarningBanner">
+    <strong>This browser isn't saving the launcher's data.</strong>
+    Builds, servers, and settings will reset every time you reload this page. This usually means storage is blocked for local (file://) pages — common in Private/Incognito windows, strict tracking-prevention modes (e.g. Brave Shields, Firefox strict mode), or a "block all cookies/site data" setting. Try a normal browser window, or allow site data for this page.
+  </div>
+
   <!-- ---------- HOME ---------- -->
   <section class="page active" id="page-home">
     <div class="hero" id="heroSection">
@@ -636,8 +651,8 @@
           <p class="empty-state">No servers saved yet.</p>
         </div>
 
-        <h3 style="margin-top:26px;">Server Websites</h3>
-        <p>Browse server lists on other sites, or add your own.</p>
+        <h3 style="margin-top:26px;">Websites</h3>
+        <p>Browse server lists on other sites, or add your own server lists or eaglercraft builds.</p>
         <div class="website-buttons">
           <button class="btn website-btn" type="button" data-url="https://topeaglerservers.com/">Topeagler Servers</button>
           <button class="btn website-btn" type="button" data-url="https://xyrios.com/minecraft/servers">Xyrios Servers</button>
@@ -761,7 +776,7 @@
   <section class="page" id="page-settings">
     <div class="simple-page">
       <h2 class="section-title">Settings</h2>
-      <p class="section-sub">Placeholder for now — tell me what you'd like configurable here.</p>
+      <p class="section-sub">File Launcher - github.com/MehtabIsCool/File-Launcher</p>
       <div class="settings-row">
         <div>
           <div class="label">Light mode</div>
@@ -828,6 +843,24 @@
         </label>
       </div>
 
+      <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
+        <div>
+          <div class="label">Auto-save build links to disk</div>
+          <div class="desc">Pick a builds.txt file once — every link you add or remove on the Builds page gets written to it automatically. Chromium browsers only (Chrome, Edge, Brave, Opera).</div>
+        </div>
+        <button type="button" class="btn" id="buildLinksAutoSaveBtn">Choose builds.txt…</button>
+        <div class="status-line" id="buildLinksAutoSaveStatus"></div>
+      </div>
+
+      <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
+        <div>
+          <div class="label">Auto-save server websites to disk</div>
+          <div class="desc">Pick a server-websites.txt file once — every website you add or remove on the Builds page gets written to it automatically. Chromium browsers only (Chrome, Edge, Brave, Opera).</div>
+        </div>
+        <button type="button" class="btn" id="serverWebsitesAutoSaveBtn">Choose server-websites.txt…</button>
+        <div class="status-line" id="serverWebsitesAutoSaveStatus"></div>
+      </div>
+
       <div class="settings-row" style="flex-direction:column; align-items:flex-start; border-bottom:none;">
         <div>
           <div class="label">Wallpaper</div>
@@ -861,6 +894,26 @@
 
 <script>
   // ============ Theme (light / dark mode) ============
+  // ============ Storage self-test ============
+  // localStorage.setItem can silently throw (private/incognito modes in some
+  // browsers, strict tracking-prevention, "block all cookies" settings) —
+  // when that happens every save above fails quietly and everything resets
+  // on the next reload. Catch that here and tell the user plainly instead of
+  // leaving them wondering why nothing sticks.
+  (function storageSelfTest() {
+    const probeKey = 'eaglercraft_launcher_storage_probe';
+    try {
+      localStorage.setItem(probeKey, '1');
+      const ok = localStorage.getItem(probeKey) === '1';
+      localStorage.removeItem(probeKey);
+      if (!ok) throw new Error('readback mismatch');
+    } catch (e) {
+      const banner = document.getElementById('storageWarningBanner');
+      if (banner) banner.style.display = 'block';
+      log('Storage self-test failed — saves will not persist: ' + e.message);
+    }
+  })();
+
   const THEME_STORAGE_KEY = 'eaglercraft_launcher_theme:' + location.pathname;
   const lightModeToggle = document.getElementById('lightModeToggle');
 
@@ -927,6 +980,7 @@
     } catch (e) {
       log('Could not save the versions list: ' + e.message);
     }
+    if (typeof autoSaveBuildLinks === 'function') autoSaveBuildLinks();
   }
 
   // Remembered across page loads — a version stays listed even if its file
@@ -1387,6 +1441,7 @@
     } catch (e) {
       log('Could not save the websites list: ' + e.message);
     }
+    if (typeof autoSaveServerWebsites === 'function') autoSaveServerWebsites();
   }
 
   let customWebsites = loadWebsites(); // [{ name, url }]
@@ -1453,6 +1508,186 @@
   });
 
   renderWebsites();
+
+  // ============ Auto-save to disk (build links + server websites) ============
+  // Backs up the "add build by link" list and the server-websites list to
+  // real .txt files on disk, written automatically every time either list
+  // changes — a second copy that survives even if the browser's localStorage
+  // gets cleared or blocked. Uses the File System Access API, which is
+  // Chromium-only (Chrome, Edge, Brave, Opera) — Firefox and Safari don't
+  // support writable file handles, so this feature quietly disables itself
+  // there. The handle itself is remembered in IndexedDB so a reconnect isn't
+  // needed every single page load, but the browser can still ask you to
+  // re-approve permission occasionally — that's a browser security rule
+  // (write permission can't be silently re-granted forever), not a bug here.
+  const FS_ACCESS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
+
+  const IDB_NAME = 'eaglercraft_launcher_db';
+  const IDB_STORE = 'file_handles';
+  // Handles are scoped to this file's own path for the same reason the
+  // localStorage keys above are — one browser profile can have several
+  // copies of this launcher on disk.
+  const BUILD_LINKS_HANDLE_KEY = 'build_links_handle:' + location.pathname;
+  const SERVER_WEBSITES_HANDLE_KEY = 'server_websites_handle:' + location.pathname;
+
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function idbSetHandle(key, handle) {
+    try {
+      const db = await idbOpen();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(handle, key);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) { /* best effort — auto-save just won't survive a reload */ }
+  }
+
+  async function idbGetHandle(key) {
+    try {
+      const db = await idbOpen();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  let buildLinksFileHandle = null;
+  let serverWebsitesFileHandle = null;
+
+  function buildLinksTxtContent() {
+    const links = versions.filter(v => v.type === 'link');
+    if (links.length === 0) return '# No build links added yet.\n';
+    return links.map(v => `${v.name} | ${v.path}`).join('\n') + '\n';
+  }
+
+  function serverWebsitesTxtContent() {
+    if (customWebsites.length === 0) return '# No server websites added yet.\n';
+    return customWebsites.map(w => `${w.name} | ${w.url}`).join('\n') + '\n';
+  }
+
+  async function writeToHandle(handle, content, statusEl, label) {
+    try {
+      const writable = await handle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      return true;
+    } catch (e) {
+      if (statusEl) {
+        statusEl.textContent = `Couldn't write to ${label}: ${e.message}`;
+        statusEl.classList.remove('ok');
+        statusEl.classList.add('error');
+      }
+      log(`Auto-save write failed for ${label}: ${e.message}`);
+      return false;
+    }
+  }
+
+  async function autoSaveBuildLinks() {
+    if (!buildLinksFileHandle) return;
+    const ok = await writeToHandle(buildLinksFileHandle, buildLinksTxtContent(), buildLinksAutoSaveStatus, 'builds.txt');
+    if (ok) {
+      buildLinksAutoSaveStatus.textContent = `Auto-saving to ${buildLinksFileHandle.name}`;
+      buildLinksAutoSaveStatus.classList.remove('error');
+      buildLinksAutoSaveStatus.classList.add('ok');
+    }
+  }
+
+  async function autoSaveServerWebsites() {
+    if (!serverWebsitesFileHandle) return;
+    const ok = await writeToHandle(serverWebsitesFileHandle, serverWebsitesTxtContent(), serverWebsitesAutoSaveStatus, 'server-websites.txt');
+    if (ok) {
+      serverWebsitesAutoSaveStatus.textContent = `Auto-saving to ${serverWebsitesFileHandle.name}`;
+      serverWebsitesAutoSaveStatus.classList.remove('error');
+      serverWebsitesAutoSaveStatus.classList.add('ok');
+    }
+  }
+
+  const buildLinksAutoSaveBtn = document.getElementById('buildLinksAutoSaveBtn');
+  const buildLinksAutoSaveStatus = document.getElementById('buildLinksAutoSaveStatus');
+  const serverWebsitesAutoSaveBtn = document.getElementById('serverWebsitesAutoSaveBtn');
+  const serverWebsitesAutoSaveStatus = document.getElementById('serverWebsitesAutoSaveStatus');
+
+  if (!FS_ACCESS_SUPPORTED) {
+    [buildLinksAutoSaveBtn, serverWebsitesAutoSaveBtn].forEach(btn => { btn.disabled = true; });
+    buildLinksAutoSaveStatus.textContent = 'Not supported in this browser — try Chrome, Edge, Brave, or Opera.';
+    buildLinksAutoSaveStatus.classList.add('error');
+    serverWebsitesAutoSaveStatus.textContent = 'Not supported in this browser — try Chrome, Edge, Brave, or Opera.';
+    serverWebsitesAutoSaveStatus.classList.add('error');
+  } else {
+    buildLinksAutoSaveBtn.addEventListener('click', async () => {
+      try {
+        buildLinksFileHandle = await window.showSaveFilePicker({
+          suggestedName: 'builds.txt',
+          types: [{ description: 'Text file', accept: { 'text/plain': ['.txt'] } }]
+        });
+        await idbSetHandle(BUILD_LINKS_HANDLE_KEY, buildLinksFileHandle);
+        await autoSaveBuildLinks();
+        log(`Connected build-links auto-save file: ${buildLinksFileHandle.name}`);
+      } catch (e) {
+        if (e.name !== 'AbortError') log('Could not connect build-links file: ' + e.message);
+      }
+    });
+
+    serverWebsitesAutoSaveBtn.addEventListener('click', async () => {
+      try {
+        serverWebsitesFileHandle = await window.showSaveFilePicker({
+          suggestedName: 'server-websites.txt',
+          types: [{ description: 'Text file', accept: { 'text/plain': ['.txt'] } }]
+        });
+        await idbSetHandle(SERVER_WEBSITES_HANDLE_KEY, serverWebsitesFileHandle);
+        await autoSaveServerWebsites();
+        log(`Connected server-websites auto-save file: ${serverWebsitesFileHandle.name}`);
+      } catch (e) {
+        if (e.name !== 'AbortError') log('Could not connect server-websites file: ' + e.message);
+      }
+    });
+
+    // Try to silently reconnect to a previously-picked file without prompting
+    // the user again. queryPermission (unlike requestPermission) doesn't
+    // need a user gesture, so this can run right away on page load.
+    (async function reconnectHandles() {
+      const savedBuilds = await idbGetHandle(BUILD_LINKS_HANDLE_KEY);
+      if (savedBuilds) {
+        try {
+          if ((await savedBuilds.queryPermission({ mode: 'readwrite' })) === 'granted') {
+            buildLinksFileHandle = savedBuilds;
+            buildLinksAutoSaveStatus.textContent = `Auto-saving to ${savedBuilds.name}`;
+            buildLinksAutoSaveStatus.classList.add('ok');
+            await autoSaveBuildLinks();
+          } else {
+            buildLinksAutoSaveStatus.textContent = `Previously connected to ${savedBuilds.name} — click to reconnect.`;
+          }
+        } catch (e) { /* handle no longer valid — ignore, button still works */ }
+      }
+      const savedWebsites = await idbGetHandle(SERVER_WEBSITES_HANDLE_KEY);
+      if (savedWebsites) {
+        try {
+          if ((await savedWebsites.queryPermission({ mode: 'readwrite' })) === 'granted') {
+            serverWebsitesFileHandle = savedWebsites;
+            serverWebsitesAutoSaveStatus.textContent = `Auto-saving to ${savedWebsites.name}`;
+            serverWebsitesAutoSaveStatus.classList.add('ok');
+            await autoSaveServerWebsites();
+          } else {
+            serverWebsitesAutoSaveStatus.textContent = `Previously connected to ${savedWebsites.name} — click to reconnect.`;
+          }
+        } catch (e) { /* handle no longer valid — ignore, button still works */ }
+      }
+    })();
+  }
 
   // ============ Wallpaper picker ============
   const WALLPAPER_STORAGE_KEY = 'eaglercraft_launcher_wallpaper:' + location.pathname;
