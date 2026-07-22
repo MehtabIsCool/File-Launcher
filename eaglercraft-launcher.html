@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eaglercraft Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0b;
+    --nav-black: #050506;
+    --pill: #24262a;
+    --text: #f4f6f8;
+    --text-dim: #b9bcc1;
+    --text-dimmer: #7d8085;
+    --ice-1: #cfe8ec;
+    --ice-2: #9bc7d1;
+    --ice-3: #4d7c8c;
+    --card-glass: rgba(210, 232, 236, 0.28);
+    --dirt-dark: #6e4527;
+    --accent: #5b8a3c;
+    --accent-light: #78ad55;
+    --danger: #c65b4f;
+
+    --row-bg: #1a1c20;
+    --row-border: transparent;
+    --panel-bg: #101114;
+    --panel-border: #2c2e33;
+    --label-bg: #17181b;
+    --switch-off: #3a3d43;
+    --switch-knob: #f2f2f2;
+
+    color-scheme: dark;
+  }
+
+  body.light-mode {
+    --black: #f3f4f6;
+    --nav-black: #ffffff;
+    --pill: #e3e5e9;
+    --text: #1b1c1f;
+    --text-dim: #4c4f55;
+    --text-dimmer: #83868c;
+
+    --row-bg: #ffffff;
+    --row-border: #e2e4e8;
+    --panel-bg: #ffffff;
+    --panel-border: #d7d9dd;
+    --label-bg: #eceef1;
+    --switch-off: #c7cad0;
+    --switch-knob: #ffffff;
+
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .launcher { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ---------- Top nav ---------- */
+  .topbar {
+    background: var(--nav-black);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 26px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--row-border);
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; }
+
+  .tabs { display: flex; align-items: center; gap: 8px; }
+
+  .tab {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--pill); color: var(--text); }
+
+  /* ---------- Pages ---------- */
+  .page { display: none; flex: 1; flex-direction: column; }
+  .page.active { display: flex; }
+
+  /* ---------- Home / hero ---------- */
+  .hero {
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #dff1f4 0%, #b7dde3 35%, #6fa6b3 70%, #3d6577 100%);
+  }
+
+  .hero-fallback-peaks {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.55) 41%, rgba(255,255,255,0.55) 44%, transparent 45%),
+      linear-gradient(65deg, transparent 55%, rgba(255,255,255,0.4) 56%, rgba(255,255,255,0.4) 59%, transparent 60%),
+      linear-gradient(160deg, var(--ice-3) 0%, transparent 55%);
+    clip-path: polygon(0% 100%, 8% 55%, 20% 78%, 32% 40%, 46% 70%, 58% 30%, 70% 62%, 82% 45%, 100% 72%, 100% 100%);
+    background-color: var(--ice-2);
+    opacity: 0.9;
+  }
+
+  .hero.wallpaper-dark {
+    background: linear-gradient(180deg, #0d1420 0%, #131c2c 35%, #1c2a3a 70%, #0a0f16 100%);
+  }
+
+  .hero-fallback-peaks-dark {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,0.8), transparent 100%),
+      radial-gradient(1.5px 1.5px at 26% 12%, rgba(255,255,255,0.6), transparent 100%),
+      radial-gradient(1px 1px at 41% 24%, rgba(255,255,255,0.7), transparent 100%),
+      radial-gradient(1.5px 1.5px at 63% 9%, rgba(255,255,255,0.5), transparent 100%),
+      radial-gradient(1px 1px at 78% 20%, rgba(255,255,255,0.7), transparent 100%),
+      radial-gradient(1.5px 1.5px at 90% 14%, rgba(255,255,255,0.6), transparent 100%),
+      linear-gradient(115deg, transparent 40%, rgba(60,75,95,0.55) 41%, rgba(60,75,95,0.55) 44%, transparent 45%),
+      linear-gradient(65deg, transparent 55%, rgba(40,52,68,0.5) 56%, rgba(40,52,68,0.5) 59%, transparent 60%),
+      linear-gradient(160deg, #101823 0%, transparent 55%);
+    clip-path: polygon(0% 100%, 8% 55%, 20% 78%, 32% 40%, 46% 70%, 58% 30%, 70% 62%, 82% 45%, 100% 72%, 100% 100%);
+    background-color: #0c1119;
+    opacity: 0.95;
+  }
+
+  .hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .hero-haze {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(20,30,35,0.25) 100%);
+  }
+
+  .launch-card {
+    position: relative;
+    z-index: 3;
+    background: var(--card-glass);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 10px;
+    padding: 26px 44px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+    min-width: 260px;
+  }
+
+  .launch-card:hover { background: rgba(210, 232, 236, 0.4); transform: translateY(-2px); }
+  .launch-card:active { transform: translateY(0); }
+  .launch-card.disabled { opacity: 0.85; }
+
+  .launch-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    color: #ffffff;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.35);
+  }
+
+  .launch-version {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #eef8fa;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .version-select-wrap { position: relative; z-index: 3; margin-top: 14px; }
+
+  .version-select {
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #eef8fa;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23eef8fa' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center,
+      rgba(20, 30, 35, 0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 20px;
+    padding: 9px 34px 9px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .version-select:hover {
+    background-color: rgba(20, 30, 35, 0.72);
+    border-color: rgba(255,255,255,0.55);
+  }
+
+  .version-select:focus {
+    outline: none;
+    border-color: var(--ice-1);
+  }
+
+  .version-select option {
+    color: #1c2b30;
+    background: #eef8fa;
+  }
+
+  .no-versions-note {
+    position: relative;
+    z-index: 3;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #eef8fa;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  /* ---------- Servers section ---------- */
+  .servers-section { padding: 34px 26px 44px; }
+  .servers-heading-row { display: flex; align-items: center; justify-content: space-between; margin: 0 0 18px; }
+  .servers-heading { font-size: 20px; font-weight: 800; letter-spacing: 3px; margin: 0; }
+  .empty-state { color: var(--text-dimmer); font-size: 14px; }
+
+  .server-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--row-bg);
+    border: 1px solid var(--row-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  .server-row .server-info { display: flex; flex-direction: column; gap: 2px; }
+  .server-row .server-name { font-size: 14px; font-weight: 700; }
+  .server-row .server-ip { font-size: 12px; color: var(--text-dimmer); font-family: 'Courier New', monospace; }
+  .server-row .server-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .copy-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--pill);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .copy-btn:hover { background: var(--pill); color: var(--text); }
+
+  /* ---------- Server websites ---------- */
+  .website-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+  .website-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--row-bg);
+    border: 1px solid var(--row-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+  .website-row .website-open-btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .website-row .website-open-btn:hover { color: var(--accent-light); }
+  .website-row .website-url { display: block; font-size: 12px; color: var(--text-dimmer); font-weight: 400; }
+  .website-row .server-actions { flex-shrink: 0; }
+
+  .build-link-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-light);
+    border: 1px solid var(--accent-light);
+    border-radius: 20px;
+    padding: 1px 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* ---------- Servers page (add form) ---------- */
+  .servers-wrap { padding: 34px 26px 44px; max-width: 560px; }
+
+  .server-form {
+    background: var(--pill);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 22px;
+  }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; }
+
+  .form-input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: border-color 0.15s ease;
+  }
+  .form-input:focus { outline: none; border-color: var(--accent-light); }
+  .form-input::placeholder { color: var(--text-dimmer); }
+
+  /* ---------- Settings: wallpaper picker ---------- */
+  .wallpaper-options { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+
+  .wallpaper-custom-actions { display: flex; gap: 14px; margin-top: 10px; }
+
+  .link-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .link-btn:hover { color: var(--text); }
+  #removeCustomWallpaperBtn { color: var(--danger); }
+  #removeCustomWallpaperBtn:hover { color: #e07d70; }
+
+  .wallpaper-option {
+    position: relative;
+    width: 150px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .wallpaper-option:hover { transform: translateY(-2px); }
+  .wallpaper-option.selected { border-color: var(--accent-light); }
+
+  .wallpaper-preview {
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wallpaper-preview.white-preview {
+    background: linear-gradient(180deg, #dff1f4 0%, #b7dde3 45%, #6fa6b3 100%);
+  }
+  .wallpaper-preview.dark-preview {
+    background: linear-gradient(180deg, #0d1420 0%, #1c2a3a 70%, #0a0f16 100%);
+  }
+  .wallpaper-preview.custom-preview {
+    background: var(--row-bg);
+    color: var(--text-dimmer);
+    font-size: 12px;
+    font-weight: 600;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .wallpaper-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 0;
+    background: var(--label-bg);
+  }
+
+  .wallpaper-option.selected .wallpaper-label { color: var(--accent-light); }
+
+  /* ---------- Builds page ---------- */
+  .installs-wrap { padding: 34px 26px 44px; max-width: 720px; }
+  .section-title { font-size: 20px; font-weight: 800; margin: 0 0 6px; }
+  .section-sub { font-size: 14px; color: var(--text-dim); margin: 0 0 22px; line-height: 1.5; }
+
+  .how-to-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 10px 0 18px;
+  }
+  .how-to-panel ol { margin: 0; padding-left: 20px; }
+  .how-to-panel li { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+  .how-to-panel code { color: var(--accent-light); }
+
+  .install-step {
+    background: var(--pill);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .install-step h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+  .install-step p { margin: 0 0 14px; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 11px 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .btn:hover { background: var(--accent-light); }
+  .btn:disabled { background: #3a3c40; color: var(--text-dimmer); cursor: not-allowed; }
+
+  .status-line { margin-top: 10px; font-size: 13px; color: var(--text-dim); }
+  .status-line.error { color: var(--danger); }
+  .status-line.ok { color: var(--accent-light); }
+
+  .installed-list { margin-top: 16px; }
+
+  .installed-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--row-bg);
+    border: 1px solid var(--row-border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  .installed-row .name { font-weight: 600; }
+  .installed-row .path { color: var(--text-dimmer); font-size: 12px; }
+
+  .delete-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--danger);
+    background: transparent;
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .delete-btn:hover { background: var(--danger); color: #ffffff; }
+
+  /* ---------- Settings ---------- */
+  .simple-page { padding: 34px 26px; max-width: 720px; }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--pill);
+  }
+
+  .settings-row .label { font-size: 14px; font-weight: 600; }
+  .settings-row .desc { font-size: 12px; color: var(--text-dimmer); margin-top: 2px; }
+
+  /* ---------- Toggle switch (replaces native checkboxes in Settings) ---------- */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .switch-track {
+    position: absolute;
+    inset: 0;
+    background: var(--switch-off);
+    border-radius: 999px;
+    transition: background 0.15s ease;
+  }
+
+  .switch-track::before {
+    content: '';
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    top: 3px;
+    background: var(--switch-knob);
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  }
+
+  .switch input:checked + .switch-track { background: var(--accent-light); }
+  .switch input:checked + .switch-track::before { transform: translateX(20px); }
+  .switch input:focus-visible + .switch-track { outline: 2px solid var(--accent-light); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="launcher">
+
+  <div class="topbar">
+    <div class="brand">
+      <div id="brandIconWrap">
+        <svg id="logoSvg" width="34" height="34" viewBox="0 0 8 8" shape-rendering="crispEdges" style="border-radius:4px;">
+          <!-- original blocky grass-cube icon (not a copy of any game texture) -->
+          <rect width="8" height="8" fill="#7a4a2a"/>
+          <rect x="0" y="4" width="1" height="1" fill="#6a3f22"/>
+          <rect x="3" y="5" width="1" height="1" fill="#8a5732"/>
+          <rect x="6" y="4" width="1" height="1" fill="#6a3f22"/>
+          <rect x="2" y="6" width="1" height="1" fill="#8a5732"/>
+          <rect x="5" y="6" width="1" height="1" fill="#6a3f22"/>
+          <rect x="0" y="0" width="8" height="2" fill="#6bbf3f"/>
+          <rect x="0" y="2" width="8" height="1" fill="#59a333"/>
+          <rect x="0" y="1" width="1" height="1" fill="#7fd156"/>
+          <rect x="4" y="0" width="1" height="1" fill="#7fd156"/>
+          <rect x="7" y="1" width="1" height="1" fill="#4f9128"/>
+        </svg>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="home" type="button">Home</button>
+      <button class="tab" data-tab="settings" type="button">Settings</button>
+      <button class="tab" data-tab="builds" type="button">Servers &amp; Builds</button>
+    </div>
+  </div>
+
+  <!-- ---------- HOME ---------- -->
+  <section class="page active" id="page-home">
+    <div class="hero" id="heroSection">
+      <div class="hero-fallback-peaks" id="heroPeaksWhite"></div>
+      <div class="hero-fallback-peaks-dark" id="heroPeaksDark" style="display:none;"></div>
+      <!-- Drop your own screenshot at eaglercraft-launcher_files/background.jpg and it'll show instead (White Mountains wallpaper only) -->
+      <img class="hero-bg-img" id="heroBgImg" src="eaglercraft-launcher_files/background.jpg" alt="" onerror="this.style.display='none'">
+      <div class="hero-haze"></div>
+      <div style="position:relative; z-index:3; display:flex; flex-direction:column; align-items:center;">
+        <div class="launch-card" id="launchCard">
+          <div class="launch-title" id="launchTitle">LAUNCH EAGLER</div>
+          <div class="launch-version" id="launchVersionLabel">Click to find versions</div>
+        </div>
+        <div class="version-select-wrap" id="versionSelectWrap" style="display:none;">
+          <select class="version-select" id="versionSelect"></select>
+        </div>
+        <div class="no-versions-note" id="noVersionsNote">
+          Click above to pick your versions folder — eaglercraft-launcher_files/versions
+        </div>
+      </div>
+    </div>
+
+    <div class="servers-section">
+      <div class="servers-heading-row">
+        <h2 class="servers-heading">EAGLERCRAFT SERVERS</h2>
+        <button class="btn" id="goToServersBtn" type="button">+ Add Server</button>
+      </div>
+      <div id="serverListWrap">
+        <p class="empty-state">No servers added yet. Click "+ Add Server" to save one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- SERVERS & BUILDS ---------- -->
+  <section class="page" id="page-builds">
+    <div class="installs-wrap">
+      <h2 class="section-title">Servers &amp; Builds</h2>
+
+      <div class="install-step" id="serversBlock">
+        <h3>Servers</h3>
+        <p>Save a server's name and IP so it's ready to copy or revisit any time.</p>
+
+        <div class="server-form">
+          <div class="form-row">
+            <label for="serverNameInput">Server name</label>
+            <input type="text" class="form-input" id="serverNameInput" placeholder="e.g. Survival SMP">
+          </div>
+          <div class="form-row">
+            <label for="serverIpInput">Server IP</label>
+            <input type="text" class="form-input" id="serverIpInput" placeholder="e.g. play.example.com:25565">
+          </div>
+          <button class="btn" id="addServerBtn" type="button">Save Server</button>
+          <div class="status-line" id="serverFormStatus"></div>
+        </div>
+
+        <div id="serversPageList">
+          <p class="empty-state">No servers saved yet.</p>
+        </div>
+
+        <h3 style="margin-top:26px;">Server Websites</h3>
+        <p>Browse server lists on other sites, or add your own.</p>
+        <div class="website-buttons">
+          <button class="btn website-btn" type="button" data-url="https://topeaglerservers.com/">Topeagler Servers</button>
+          <button class="btn website-btn" type="button" data-url="https://xyrios.com/minecraft/servers">Xyrios Servers</button>
+        </div>
+
+        <div class="server-form" style="margin-top:16px;">
+          <div class="form-row">
+            <label for="websiteNameInput">Website name</label>
+            <input type="text" class="form-input" id="websiteNameInput" placeholder="e.g. My Favorite Server List">
+          </div>
+          <div class="form-row">
+            <label for="websiteUrlInput">Website URL</label>
+            <input type="text" class="form-input" id="websiteUrlInput" placeholder="e.g. https://example.com/servers">
+          </div>
+          <button class="btn" id="addWebsiteBtn" type="button">Add Website</button>
+          <div class="status-line" id="websiteFormStatus"></div>
+        </div>
+
+        <div id="customWebsiteList"></div>
+      </div>
+
+      <div class="install-step">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px;">
+          <h3 style="margin:0;">Builds</h3>
+          <button class="btn" id="howToAddBuildsBtn" type="button" style="background:transparent;border:1px solid var(--accent-light);color:var(--accent-light);">How to add builds</button>
+        </div>
+        <p>
+          Scan <code>eaglercraft-launcher_files/versions/</code> and every <code>.html</code>
+          file found is remembered here — it stays listed across page reloads even if the
+          file is later moved or deleted, until you remove it yourself with the Delete
+          button below.
+        </p>
+
+        <div class="how-to-panel" id="howToAddBuildsPanel" style="display:none;">
+          <ol>
+            <li>Find your Eaglercraft build's <code>.html</code> file (and its matching <code>..._files</code> folder, if it has one).</li>
+            <li>Drop the <code>.html</code> file straight into <code>eaglercraft-launcher_files/versions/</code> — the companion folder can sit alongside it, it'll be ignored.</li>
+            <li>Come back here and click <strong>Refresh</strong> below.</li>
+            <li>Pick the <code>versions</code> folder itself when the folder picker opens — every <code>.html</code> file found there gets remembered.</li>
+          </ol>
+          <p style="font-size:13px; color:var(--text-dim); margin:10px 0 0;">
+            <strong>On iOS:</strong> Safari can't pick a whole folder, so tap Refresh and select the build <code>.html</code> file(s) directly instead — they don't need to be moved into <code>versions/</code> first.
+          </p>
+        </div>
+
+        <h3 style="margin-top:22px;">Add a build link</h3>
+        <p>Have an Eaglercraft build hosted online instead of a local file? Paste its link here and it'll show up alongside your local builds, ready to launch.</p>
+        <div class="server-form">
+          <div class="form-row">
+            <label for="buildLinkNameInput">Build name</label>
+            <input type="text" class="form-input" id="buildLinkNameInput" placeholder="e.g. Eagler 1.8 Community Build">
+          </div>
+          <div class="form-row">
+            <label for="buildLinkUrlInput">Build URL</label>
+            <input type="text" class="form-input" id="buildLinkUrlInput" placeholder="e.g. https://example.com/eaglercraft/index.html">
+          </div>
+          <button class="btn" id="addBuildLinkBtn" type="button">Add Link</button>
+          <div class="status-line" id="buildLinkFormStatus"></div>
+        </div>
+
+        <h3>Detected versions</h3>
+        <p>Scans <code>eaglercraft-launcher_files/versions/</code> for <code>.html</code> files, plus any build links you've added above.</p>
+        <button class="btn" id="refreshBtn" type="button">Refresh</button>
+        <button class="btn" id="clearAllBtn" type="button" style="background:transparent;border:1px solid var(--danger);color:var(--danger);">Clear All</button>
+        <input type="file" id="versionsFolderInput" webkitdirectory directory multiple style="display:none;">
+        <div class="status-line" id="scanStatus"></div>
+        <div class="installed-list" id="installedList">
+          <p class="empty-state">Click Refresh to scan.</p>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px;">
+          <h3 style="margin:0;">EaglerForge Injector</h3>
+          <button class="btn website-btn" type="button" data-url="https://eaglerforge.github.io/EaglerForgeInjector/">Open Injector</button>
+        </div>
+        <p>
+          Adds a modding API (method hooking, reflection, custom classes) to an
+          unminified, unobfuscated, unsigned EaglercraftX offline build. It's a
+          separate browser tool by the <a href="https://github.com/eaglerforge/EaglerForgeInjector" target="_blank" rel="noopener">EaglerForge project</a> —
+          it runs entirely client-side (upload a build, it patches it, you download
+          the modded copy), so it opens in its own tab rather than inside the launcher.
+        </p>
+        <div class="how-to-panel" style="display:block;">
+          <ol>
+            <li>Click <strong>Open Injector</strong> above — it opens <code>eaglerforge.github.io/EaglerForgeInjector</code> in a new tab.</li>
+            <li>On that page, upload your unminified/unobfuscated/unsigned EaglercraftX build <code>.html</code> file.</li>
+            <li>Let it patch the build, then download the resulting modded <code>.html</code> file.</li>
+            <li>Drop that file into <code>eaglercraft-launcher_files/versions/</code> like any other build, then hit <strong>Refresh</strong> above so it shows up here.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="install-step">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:4px;">
+          <h3 style="margin:0;">Wispcraft Injector</h3>
+          <button class="btn website-btn" type="button" data-url="https://github.com/MercuryWorkshop/wispcraft/releases">Get Injector</button>
+        </div>
+        <p>
+          Patches WISP tunneling into an EaglercraftX 1.8 build so it can join
+          regular online-mode Minecraft servers, not just Eaglercraft-specific
+          ones. Built by <a href="https://github.com/MercuryWorkshop/wispcraft" target="_blank" rel="noopener">Mercury Workshop</a>.
+          Unlike the EaglerForge tool above, this one doesn't have a hosted
+          page — you download a small standalone <code>injector.html</code>
+          file and run it locally instead.
+        </p>
+        <div class="how-to-panel" style="display:block;">
+          <ol>
+            <li>Click <strong>Get Injector</strong> above — it opens the "Continuous Build" release on GitHub.</li>
+            <li>Under <strong>Assets</strong>, download the <code>injector.html</code> file (save it anywhere, e.g. your Desktop or Downloads — it doesn't need to live in this launcher's folder).</li>
+            <li>Double-click that downloaded <code>injector.html</code> to open it in your browser, then use its file picker to upload your EaglercraftX 1.8 build <code>.html</code> file.</li>
+            <li>It'll process the file locally and give you a download link for the patched copy (named something like <code>wisped-eagler.html</code>).</li>
+            <li>Move that downloaded file into <code>eaglercraft-launcher_files/versions/</code>, then hit <strong>Refresh</strong> above so it shows up here.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- SETTINGS ---------- -->
+  <section class="page" id="page-settings">
+    <div class="simple-page">
+      <h2 class="section-title">Settings</h2>
+      <p class="section-sub">Placeholder for now — tell me what you'd like configurable here.</p>
+      <div class="settings-row">
+        <div>
+          <div class="label">Light mode</div>
+          <div class="desc">Switch the launcher's interface to a light color scheme</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="lightModeToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="label">Launch in new tab</div>
+          <div class="desc">Open versions in a new tab instead of navigating away</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="newTabToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="label">Open apps in Picture-in-Picture</div>
+          <div class="desc">Launch builds in a small always-on-top window. Needs a Chromium browser (Chrome/Edge); falls back to normal launch otherwise.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="pipToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="label">Open builds in about:blank</div>
+          <div class="desc">Loads the build inside a blank tab instead of navigating to the file directly. Ignored if Picture-in-Picture is on.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="blankTabToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="label">Inject EaglerMobile</div>
+          <div class="desc">Adds FlamedDogo99's EaglerMobile touch-control script to builds on launch. Only works for builds found in the current session's scan — hit Refresh on the Builds page first if a build was just remembered from an earlier visit.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="eaglerMobileToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="label">Inject EaglerConsole</div>
+          <div class="desc">Adds irv77's EaglerConsole gamepad/controller-support script to builds on launch. Proof-of-concept — only works for builds found in the current session's scan — hit Refresh on the Builds page first if a build was just remembered from an earlier visit.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="eaglerConsoleToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row" style="flex-direction:column; align-items:flex-start; border-bottom:none;">
+        <div>
+          <div class="label">Wallpaper</div>
+          <div class="desc">Choose the home screen background</div>
+        </div>
+        <div class="wallpaper-options">
+          <div class="wallpaper-option" id="wallpaperOptionWhite" data-wallpaper="white">
+            <div class="wallpaper-preview white-preview"></div>
+            <div class="wallpaper-label">White Mountains</div>
+          </div>
+          <div class="wallpaper-option" id="wallpaperOptionDark" data-wallpaper="dark">
+            <div class="wallpaper-preview dark-preview"></div>
+            <div class="wallpaper-label">Dark Mountains</div>
+          </div>
+          <div class="wallpaper-option" id="wallpaperOptionCustom" data-wallpaper="custom">
+            <div class="wallpaper-preview custom-preview" id="customWallpaperPreview">Upload</div>
+            <div class="wallpaper-label">Custom</div>
+          </div>
+        </div>
+        <div class="wallpaper-custom-actions" id="wallpaperCustomActions" style="display:none;">
+          <button type="button" class="link-btn" id="changeCustomWallpaperBtn">Change image</button>
+          <button type="button" class="link-btn" id="removeCustomWallpaperBtn">Remove</button>
+        </div>
+        <input type="file" id="customWallpaperInput" accept="image/*" style="display:none;">
+        <div class="status-line" id="wallpaperStatus"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ============ Theme (light / dark mode) ============
+  const THEME_STORAGE_KEY = 'eaglercraft_launcher_theme:' + location.pathname;
+  const lightModeToggle = document.getElementById('lightModeToggle');
+
+  function loadThemeSetting() {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY) === 'light';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function saveThemeSetting(isLight) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, isLight ? 'light' : 'dark');
+    } catch (e) {
+      // ignore - theme just won't persist across reloads
+    }
+  }
+
+  function applyTheme(isLight) {
+    document.body.classList.toggle('light-mode', isLight);
+    lightModeToggle.checked = isLight;
+  }
+
+  applyTheme(loadThemeSetting());
+
+  lightModeToggle.addEventListener('change', () => {
+    const isLight = lightModeToggle.checked;
+    applyTheme(isLight);
+    saveThemeSetting(isLight);
+    log(isLight ? 'Switched to light mode.' : 'Switched to dark mode.');
+  });
+
+  // ============ Tab switching ============
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ============ Shared state ============
+  const VERSIONS_DIR = 'eaglercraft-launcher_files/versions';
+  // file:// pages share ONE storage origin across your whole computer in most
+  // Chromium browsers — so without this, two different launcher folders would
+  // read and write the exact same remembered list. Scoping the key to this
+  // copy's own path keeps each folder's versions separate.
+  const STORAGE_KEY = 'eaglercraft_launcher_versions:' + location.pathname;
+
+  function loadRememberedVersions() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveRememberedVersions() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
+    } catch (e) {
+      log('Could not save the versions list: ' + e.message);
+    }
+  }
+
+  // Remembered across page loads — a version stays listed even if its file
+  // is later removed from disk, until you delete it here yourself.
+  let versions = loadRememberedVersions();   // [{ name, path }]
+
+  // Console page has been removed — activity now just goes to the browser console.
+  function log(line) {
+    const time = new Date().toLocaleTimeString();
+    console.log(`[${time}] ${line}`);
+  }
+
+  // ============ Home tab rendering ============
+  const launchCard = document.getElementById('launchCard');
+  const launchVersionLabel = document.getElementById('launchVersionLabel');
+  const versionSelectWrap = document.getElementById('versionSelectWrap');
+  const versionSelect = document.getElementById('versionSelect');
+  const noVersionsNote = document.getElementById('noVersionsNote');
+
+  function renderHome() {
+    if (versions.length === 0) {
+      launchCard.classList.add('disabled');
+      launchVersionLabel.textContent = 'Click to find versions';
+      versionSelectWrap.style.display = 'none';
+      noVersionsNote.style.display = 'block';
+      return;
+    }
+    launchCard.classList.remove('disabled');
+    noVersionsNote.style.display = 'none';
+    versionSelectWrap.style.display = 'block';
+
+    versionSelect.innerHTML = '';
+    versions.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.textContent = v.name;
+      versionSelect.appendChild(opt);
+    });
+    launchVersionLabel.textContent = versionSelect.value || versions[0].name;
+  }
+
+  versionSelect.addEventListener('change', () => {
+    launchVersionLabel.textContent = versionSelect.value;
+  });
+
+  // ============ Mod injection (EaglerMobile) ============
+  // File objects are only available for versions found in *this* session's
+  // scan — they can't be persisted to localStorage, so builds that are only
+  // "remembered" from an earlier visit need a Refresh before injection works.
+  const versionFiles = {}; // path -> File
+
+  const INJECT_SCRIPTS = {
+    eaglerMobile: 'https://raw.githubusercontent.com/FlamedDogo99/EaglerMobile/main/eaglermobile.user.js',
+    eaglerConsole: 'https://raw.githubusercontent.com/irv77/EaglerConsole/main/eaglerconsole.user.js'
+  };
+
+  function buildInjectedHtml(originalHtml, scriptUrls) {
+    const tags = scriptUrls.map(u => `<script src="${u}"><\/script>`).join('\n');
+    if (/<head[^>]*>/i.test(originalHtml)) {
+      return originalHtml.replace(/<head[^>]*>/i, match => match + '\n' + tags);
+    }
+    return tags + '\n' + originalHtml;
+  }
+
+  async function getLaunchUrl(v) {
+    if (v.type === 'link') {
+      // Hosted elsewhere — just open it directly. Mod injection needs the raw
+      // file text, which isn't available (and usually can't be fetched due
+      // to CORS) for a build hosted on someone else's site.
+      if (document.getElementById('eaglerMobileToggle').checked || document.getElementById('eaglerConsoleToggle').checked) {
+        log(`Can't inject mods into "${v.name}" — it's a web link, not a local file.`);
+      }
+      return v.path;
+    }
+
+    const scriptsToInject = [];
+    if (document.getElementById('eaglerMobileToggle').checked) scriptsToInject.push(INJECT_SCRIPTS.eaglerMobile);
+    if (document.getElementById('eaglerConsoleToggle').checked) scriptsToInject.push(INJECT_SCRIPTS.eaglerConsole);
+
+    const file = versionFiles[v.path];
+    if (!file) {
+      // No cached File handle for this session (e.g. a version just
+      // "remembered" from an earlier visit) — fall back to the relative
+      // disk path, which only works if the file actually sits there.
+      if (scriptsToInject.length > 0) {
+        log(`Can't inject mods into "${v.name}" — hit Refresh on the Builds page first, then try again.`);
+      }
+      return v.path;
+    }
+
+    try {
+      const text = await file.text();
+      const html = scriptsToInject.length > 0 ? buildInjectedHtml(text, scriptsToInject) : text;
+      const blob = new Blob([html], { type: 'text/html' });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      log('Could not read the build file (' + e.message + ') — falling back to its disk path.');
+      return v.path;
+    }
+  }
+
+  async function launchNormally(v) {
+    const url = await getLaunchUrl(v);
+    const openInNewTab = document.getElementById('newTabToggle').checked;
+    if (openInNewTab) window.open(url, '_blank');
+    else window.location.href = url;
+  }
+
+  async function launchInPictureInPicture(v) {
+    if (!('documentPictureInPicture' in window)) {
+      log('Picture-in-Picture is not supported in this browser — launching normally instead.');
+      launchNormally(v);
+      return;
+    }
+    try {
+      // Must be requested synchronously-ish within the click gesture — no
+      // awaited work happens before this call.
+      const pipWindow = await window.documentPictureInPicture.requestWindow({ width: 960, height: 600 });
+      const url = await getLaunchUrl(v);
+      pipWindow.document.title = v.name;
+      pipWindow.document.body.style.margin = '0';
+      pipWindow.document.body.style.background = '#000';
+      const iframe = pipWindow.document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; border:none;';
+      pipWindow.document.body.appendChild(iframe);
+      log(`Opened ${v.name} in Picture-in-Picture.`);
+    } catch (e) {
+      log('Could not open Picture-in-Picture (' + e.message + ') — launching normally instead.');
+      launchNormally(v);
+    }
+  }
+
+  async function launchInAboutBlank(v) {
+    const win = window.open('about:blank', '_blank');
+    if (!win) {
+      log('Popup blocked — allow popups for this page to use about:blank launch. Launching normally instead.');
+      launchNormally(v);
+      return;
+    }
+    try {
+      const url = await getLaunchUrl(v);
+      win.document.title = v.name;
+      win.document.body.style.margin = '0';
+      win.document.body.style.background = '#000';
+      const iframe = win.document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; border:none;';
+      win.document.body.appendChild(iframe);
+      log(`Opened ${v.name} in a blank tab.`);
+    } catch (e) {
+      log('Could not set up the blank tab (' + e.message + ') — launching normally instead.');
+      win.close();
+      launchNormally(v);
+    }
+  }
+
+  launchCard.addEventListener('click', () => {
+    if (versions.length === 0) {
+      // No versions found yet — this click doubles as the scan trigger.
+      versionsFolderInput.click();
+      return;
+    }
+    const v = versions.find(v => v.name === versionSelect.value) || versions[0];
+    log(`Launching ${v.name}...`);
+    if (document.getElementById('pipToggle').checked) {
+      launchInPictureInPicture(v);
+    } else if (document.getElementById('blankTabToggle').checked) {
+      launchInAboutBlank(v);
+    } else {
+      launchNormally(v);
+    }
+  });
+
+  // ============ Builds tab: read-only scan of versions/ ============
+  // Uses a plain <input webkitdirectory> folder picker instead of the File
+  // System Access API — this works on file:// pages (no local server needed),
+  // since it's just a file dialog, not a permission-gated API.
+  const refreshBtn = document.getElementById('refreshBtn');
+  const howToAddBuildsBtn = document.getElementById('howToAddBuildsBtn');
+  const howToAddBuildsPanel = document.getElementById('howToAddBuildsPanel');
+  howToAddBuildsBtn.addEventListener('click', () => {
+    const isHidden = howToAddBuildsPanel.style.display === 'none';
+    howToAddBuildsPanel.style.display = isHidden ? 'block' : 'none';
+    howToAddBuildsBtn.textContent = isHidden ? 'Hide instructions' : 'How to add builds';
+  });
+  const versionsFolderInput = document.getElementById('versionsFolderInput');
+  const scanStatus = document.getElementById('scanStatus');
+  const installedList = document.getElementById('installedList');
+
+  function renderInstalledList() {
+    if (versions.length === 0) {
+      installedList.innerHTML = '<p class="empty-state">Nothing remembered yet. Click Refresh and pick the versions folder.</p>';
+      return;
+    }
+    installedList.innerHTML = '';
+    versions.forEach(v => {
+      const row = document.createElement('div');
+      row.className = 'installed-row';
+      const badge = v.type === 'link' ? '<span class="build-link-badge">WEB LINK</span>' : '';
+      row.innerHTML = `
+        <div><div class="name">${v.name}${badge}</div><div class="path">${v.path}</div></div>
+        <button class="delete-btn" type="button" title="Forget this version">Delete</button>
+      `;
+      row.querySelector('.delete-btn').addEventListener('click', () => {
+        versions = versions.filter(x => x.path !== v.path);
+        saveRememberedVersions();
+        renderInstalledList();
+        renderHome();
+        log(`Forgot version: ${v.name}`);
+      });
+      installedList.appendChild(row);
+    });
+  }
+
+  refreshBtn.addEventListener('click', () => versionsFolderInput.click());
+
+  document.getElementById('clearAllBtn').addEventListener('click', () => {
+    versions = [];
+    saveRememberedVersions();
+    renderInstalledList();
+    renderHome();
+    scanStatus.textContent = 'Cleared everything remembered.';
+    scanStatus.classList.remove('error');
+    scanStatus.classList.add('ok');
+    log('Cleared all remembered versions.');
+  });
+
+  versionsFolderInput.addEventListener('change', () => {
+    const files = Array.from(versionsFolderInput.files);
+    if (files.length === 0) return;
+
+    // Folder pickers (desktop, Android Chrome) give webkitRelativePath like
+    // "versions/build.html" — depth of exactly 2 for a top-level file.
+    // iOS Safari doesn't support folder picking at all, so it just hands
+    // back loose files with no relative path; treat any selected .html
+    // file as a build in that case.
+    const found = [];
+    files.forEach(file => {
+      if (!/\.html?$/i.test(file.name)) return;
+
+      if (file.webkitRelativePath) {
+        const parts = file.webkitRelativePath.split('/');
+        if (parts.length !== 2) return; // skip nested subfolder files
+      }
+
+      const path = `${VERSIONS_DIR}/${file.name}`;
+      found.push({
+        name: file.name.replace(/\.html?$/i, ''),
+        path
+      });
+      versionFiles[path] = file;
+    });
+
+    // Merge into what's already remembered rather than replacing it, so
+    // versions found in earlier scans stay listed even if this scan
+    // doesn't see them (e.g. the file was since removed from disk).
+    let newCount = 0;
+    found.forEach(f => {
+      if (!versions.some(v => v.path === f.path)) {
+        versions.push(f);
+        newCount++;
+      }
+    });
+    saveRememberedVersions();
+
+    if (found.length === 0) {
+      scanStatus.textContent = 'Scanned — no .html files found. If you picked a folder, make sure it\'s "versions" itself; if you picked files, select the build .html file(s) directly.';
+      scanStatus.classList.remove('ok');
+      scanStatus.classList.add('error');
+    } else {
+      scanStatus.textContent = `Scanned — ${found.length} file(s) found, ${newCount} newly added.`;
+      scanStatus.classList.remove('error');
+      scanStatus.classList.add('ok');
+    }
+    log(`Scanned versions folder — found ${found.length} .html file(s), ${newCount} new.`);
+    renderInstalledList();
+    renderHome();
+    versionsFolderInput.value = '';
+  });
+
+  // ============ Builds tab: add a build by link ============
+  const buildLinkNameInput = document.getElementById('buildLinkNameInput');
+  const buildLinkUrlInput = document.getElementById('buildLinkUrlInput');
+  const addBuildLinkBtn = document.getElementById('addBuildLinkBtn');
+  const buildLinkFormStatus = document.getElementById('buildLinkFormStatus');
+
+  addBuildLinkBtn.addEventListener('click', () => {
+    const name = buildLinkNameInput.value.trim();
+    let url = buildLinkUrlInput.value.trim();
+    if (!name || !url) {
+      buildLinkFormStatus.textContent = 'Enter both a name and a URL.';
+      buildLinkFormStatus.classList.remove('ok');
+      buildLinkFormStatus.classList.add('error');
+      return;
+    }
+    url = normalizeUrl(url);
+    if (versions.some(v => v.path === url)) {
+      buildLinkFormStatus.textContent = 'That link is already added.';
+      buildLinkFormStatus.classList.remove('ok');
+      buildLinkFormStatus.classList.add('error');
+      return;
+    }
+    versions.push({ name, path: url, type: 'link' });
+    saveRememberedVersions();
+    renderInstalledList();
+    renderHome();
+    buildLinkNameInput.value = '';
+    buildLinkUrlInput.value = '';
+    buildLinkFormStatus.textContent = `Saved "${name}".`;
+    buildLinkFormStatus.classList.remove('error');
+    buildLinkFormStatus.classList.add('ok');
+    log(`Saved build link: ${name} (${url})`);
+  });
+
+  // Initial render — shows anything remembered from previous visits
+  renderInstalledList();
+  renderHome();
+
+  // ============ Optional custom logo override ============
+  // If you drop a file at eaglercraft-launcher_files/logo.png, it replaces the built-in SVG icon.
+  (function tryCustomLogo() {
+    const img = new Image();
+    img.onload = () => {
+      document.getElementById('brandIconWrap').innerHTML =
+        '<img src="eaglercraft-launcher_files/logo.png" width="34" height="34" style="border-radius:4px;object-fit:cover;display:block;">';
+    };
+    img.src = 'eaglercraft-launcher_files/logo.png';
+  })();
+
+  // ============ Servers (save name + IP) ============
+  const SERVERS_STORAGE_KEY = 'eaglercraft_launcher_servers:' + location.pathname;
+
+  function loadServers() {
+    try {
+      const raw = localStorage.getItem(SERVERS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveServers() {
+    try {
+      localStorage.setItem(SERVERS_STORAGE_KEY, JSON.stringify(servers));
+    } catch (e) {
+      log('Could not save the servers list: ' + e.message);
+    }
+  }
+
+  let servers = loadServers(); // [{ name, ip }]
+
+  const serverNameInput = document.getElementById('serverNameInput');
+  const serverIpInput = document.getElementById('serverIpInput');
+  const addServerBtn = document.getElementById('addServerBtn');
+  const serverFormStatus = document.getElementById('serverFormStatus');
+  const serversPageList = document.getElementById('serversPageList');
+  const serverListWrap = document.getElementById('serverListWrap');
+  const goToServersBtn = document.getElementById('goToServersBtn');
+
+  function makeServerRow(s, index) {
+    const row = document.createElement('div');
+    row.className = 'server-row';
+    row.innerHTML = `
+      <div class="server-info">
+        <div class="server-name"></div>
+        <div class="server-ip"></div>
+      </div>
+      <div class="server-actions">
+        <button class="copy-btn" type="button">Copy IP</button>
+        <button class="delete-btn" type="button">Delete</button>
+      </div>
+    `;
+    row.querySelector('.server-name').textContent = s.name;
+    row.querySelector('.server-ip').textContent = s.ip;
+    row.querySelector('.copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(s.ip).then(() => {
+        log(`Copied IP for ${s.name}`);
+      }).catch(() => {});
+    });
+    row.querySelector('.delete-btn').addEventListener('click', () => {
+      servers = servers.filter((_, i) => i !== index);
+      saveServers();
+      renderServers();
+      log(`Removed server: ${s.name}`);
+    });
+    return row;
+  }
+
+  function renderServers() {
+    // Servers page (with form)
+    if (servers.length === 0) {
+      serversPageList.innerHTML = '<p class="empty-state">No servers saved yet.</p>';
+    } else {
+      serversPageList.innerHTML = '';
+      servers.forEach((s, i) => serversPageList.appendChild(makeServerRow(s, i)));
+    }
+
+    // Home page mirror
+    if (servers.length === 0) {
+      serverListWrap.innerHTML = '<p class="empty-state">No servers added yet. Click "+ Add Server" to save one.</p>';
+    } else {
+      serverListWrap.innerHTML = '';
+      servers.forEach((s, i) => serverListWrap.appendChild(makeServerRow(s, i)));
+    }
+  }
+
+  addServerBtn.addEventListener('click', () => {
+    const name = serverNameInput.value.trim();
+    const ip = serverIpInput.value.trim();
+    if (!name || !ip) {
+      serverFormStatus.textContent = 'Enter both a name and an IP.';
+      serverFormStatus.classList.remove('ok');
+      serverFormStatus.classList.add('error');
+      return;
+    }
+    servers.push({ name, ip });
+    saveServers();
+    renderServers();
+    serverNameInput.value = '';
+    serverIpInput.value = '';
+    serverFormStatus.textContent = `Saved "${name}".`;
+    serverFormStatus.classList.remove('error');
+    serverFormStatus.classList.add('ok');
+    log(`Saved server: ${name} (${ip})`);
+  });
+
+  goToServersBtn.addEventListener('click', () => {
+    document.querySelector('.tab[data-tab="builds"]').click();
+    document.getElementById('serversBlock').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    serverNameInput.focus();
+  });
+
+  renderServers();
+
+  // ============ Server websites (fixed buttons + user-added) ============
+  document.querySelectorAll('.website-btn[data-url]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.open(btn.dataset.url, '_blank', 'noopener');
+      log(`Opened server website: ${btn.dataset.url}`);
+    });
+  });
+
+  const WEBSITES_STORAGE_KEY = 'eaglercraft_launcher_websites:' + location.pathname;
+
+  function loadWebsites() {
+    try {
+      const raw = localStorage.getItem(WEBSITES_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveWebsites() {
+    try {
+      localStorage.setItem(WEBSITES_STORAGE_KEY, JSON.stringify(customWebsites));
+    } catch (e) {
+      log('Could not save the websites list: ' + e.message);
+    }
+  }
+
+  let customWebsites = loadWebsites(); // [{ name, url }]
+
+  const websiteNameInput = document.getElementById('websiteNameInput');
+  const websiteUrlInput = document.getElementById('websiteUrlInput');
+  const addWebsiteBtn = document.getElementById('addWebsiteBtn');
+  const websiteFormStatus = document.getElementById('websiteFormStatus');
+  const customWebsiteList = document.getElementById('customWebsiteList');
+
+  function normalizeUrl(u) {
+    if (!/^https?:\/\//i.test(u)) return 'https://' + u;
+    return u;
+  }
+
+  function renderWebsites() {
+    if (customWebsites.length === 0) {
+      customWebsiteList.innerHTML = '';
+      return;
+    }
+    customWebsiteList.innerHTML = '';
+    customWebsites.forEach((w, index) => {
+      const row = document.createElement('div');
+      row.className = 'website-row';
+      row.innerHTML = `
+        <button type="button" class="website-open-btn">${w.name}<span class="website-url">${w.url}</span></button>
+        <div class="server-actions">
+          <button class="delete-btn" type="button">Delete</button>
+        </div>
+      `;
+      row.querySelector('.website-open-btn').addEventListener('click', () => {
+        window.open(w.url, '_blank', 'noopener');
+        log(`Opened server website: ${w.url}`);
+      });
+      row.querySelector('.delete-btn').addEventListener('click', () => {
+        customWebsites = customWebsites.filter((_, i) => i !== index);
+        saveWebsites();
+        renderWebsites();
+        log(`Removed server website: ${w.name}`);
+      });
+      customWebsiteList.appendChild(row);
+    });
+  }
+
+  addWebsiteBtn.addEventListener('click', () => {
+    const name = websiteNameInput.value.trim();
+    let url = websiteUrlInput.value.trim();
+    if (!name || !url) {
+      websiteFormStatus.textContent = 'Enter both a name and a URL.';
+      websiteFormStatus.classList.remove('ok');
+      websiteFormStatus.classList.add('error');
+      return;
+    }
+    url = normalizeUrl(url);
+    customWebsites.push({ name, url });
+    saveWebsites();
+    renderWebsites();
+    websiteNameInput.value = '';
+    websiteUrlInput.value = '';
+    websiteFormStatus.textContent = `Saved "${name}".`;
+    websiteFormStatus.classList.remove('error');
+    websiteFormStatus.classList.add('ok');
+    log(`Saved server website: ${name} (${url})`);
+  });
+
+  renderWebsites();
+
+  // ============ Wallpaper picker ============
+  const WALLPAPER_STORAGE_KEY = 'eaglercraft_launcher_wallpaper:' + location.pathname;
+
+  function loadWallpaperSetting() {
+    try {
+      const raw = localStorage.getItem(WALLPAPER_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { mode: 'white', customData: null };
+    } catch (e) {
+      return { mode: 'white', customData: null };
+    }
+  }
+
+  function saveWallpaperSetting() {
+    try {
+      localStorage.setItem(WALLPAPER_STORAGE_KEY, JSON.stringify(wallpaperSetting));
+    } catch (e) {
+      wallpaperStatus.textContent = 'Could not save wallpaper (it may be too large for local storage).';
+      wallpaperStatus.classList.remove('ok');
+      wallpaperStatus.classList.add('error');
+    }
+  }
+
+  let wallpaperSetting = loadWallpaperSetting();
+
+  const heroSection = document.getElementById('heroSection');
+  const heroPeaksWhite = document.getElementById('heroPeaksWhite');
+  const heroPeaksDark = document.getElementById('heroPeaksDark');
+  const wallpaperOptionEls = {
+    white: document.getElementById('wallpaperOptionWhite'),
+    dark: document.getElementById('wallpaperOptionDark'),
+    custom: document.getElementById('wallpaperOptionCustom')
+  };
+  const customWallpaperInput = document.getElementById('customWallpaperInput');
+  const customWallpaperPreview = document.getElementById('customWallpaperPreview');
+  const wallpaperStatus = document.getElementById('wallpaperStatus');
+  const wallpaperCustomActions = document.getElementById('wallpaperCustomActions');
+  const changeCustomWallpaperBtn = document.getElementById('changeCustomWallpaperBtn');
+  const removeCustomWallpaperBtn = document.getElementById('removeCustomWallpaperBtn');
+
+  function applyWallpaper() {
+    const mode = wallpaperSetting.mode;
+
+    heroSection.classList.toggle('wallpaper-dark', mode === 'dark');
+    heroPeaksWhite.style.display = (mode === 'white') ? 'block' : 'none';
+    heroPeaksDark.style.display = (mode === 'dark') ? 'block' : 'none';
+
+    if (mode === 'custom' && wallpaperSetting.customData) {
+      heroBgImg.src = wallpaperSetting.customData;
+      heroBgImg.style.display = 'block';
+    } else if (mode === 'white') {
+      // Restore default behavior: auto-load background.jpg if present, else fall back to CSS peaks.
+      heroBgImg.style.display = '';
+      heroBgImg.src = 'eaglercraft-launcher_files/background.jpg';
+    } else {
+      heroBgImg.style.display = 'none';
+    }
+
+    Object.entries(wallpaperOptionEls).forEach(([key, el]) => {
+      el.classList.toggle('selected', key === mode);
+    });
+
+    if (wallpaperSetting.customData) {
+      customWallpaperPreview.style.backgroundImage = `url(${wallpaperSetting.customData})`;
+      customWallpaperPreview.textContent = '';
+      wallpaperCustomActions.style.display = 'flex';
+    } else {
+      customWallpaperPreview.style.backgroundImage = '';
+      customWallpaperPreview.textContent = 'Upload';
+      wallpaperCustomActions.style.display = 'none';
+    }
+  }
+
+  wallpaperOptionEls.white.addEventListener('click', () => {
+    wallpaperSetting.mode = 'white';
+    saveWallpaperSetting();
+    applyWallpaper();
+    log('Wallpaper set to White Mountains.');
+  });
+
+  wallpaperOptionEls.dark.addEventListener('click', () => {
+    wallpaperSetting.mode = 'dark';
+    saveWallpaperSetting();
+    applyWallpaper();
+    log('Wallpaper set to Dark Mountains.');
+  });
+
+  wallpaperOptionEls.custom.addEventListener('click', () => {
+    if (wallpaperSetting.customData) {
+      wallpaperSetting.mode = 'custom';
+      saveWallpaperSetting();
+      applyWallpaper();
+      log('Wallpaper set to custom image.');
+    } else {
+      customWallpaperInput.click();
+    }
+  });
+
+  // Lets you pick a different image even after one is already set, without
+  // having to remove the current one first.
+  changeCustomWallpaperBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    customWallpaperInput.click();
+  });
+
+  // Clears the saved custom image and falls back to White Mountains.
+  removeCustomWallpaperBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wallpaperSetting.customData = null;
+    if (wallpaperSetting.mode === 'custom') wallpaperSetting.mode = 'white';
+    saveWallpaperSetting();
+    applyWallpaper();
+    wallpaperStatus.textContent = 'Custom wallpaper removed.';
+    wallpaperStatus.classList.remove('error');
+    wallpaperStatus.classList.add('ok');
+    log('Removed custom wallpaper.');
+  });
+
+  customWallpaperInput.addEventListener('change', () => {
+    const file = customWallpaperInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      wallpaperSetting.mode = 'custom';
+      wallpaperSetting.customData = reader.result;
+      saveWallpaperSetting();
+      applyWallpaper();
+      wallpaperStatus.textContent = `Custom wallpaper "${file.name}" set.`;
+      wallpaperStatus.classList.remove('error');
+      wallpaperStatus.classList.add('ok');
+      log(`Custom wallpaper set: ${file.name}`);
+    };
+    reader.onerror = () => {
+      wallpaperStatus.textContent = 'Could not read that image.';
+      wallpaperStatus.classList.remove('ok');
+      wallpaperStatus.classList.add('error');
+    };
+    reader.readAsDataURL(file);
+    customWallpaperInput.value = '';
+  });
+
+  applyWallpaper();
+</script>
+
+</body>
+</html>
