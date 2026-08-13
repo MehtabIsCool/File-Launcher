@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>File Launcher For Eaglercraft</title>
+<title>File Launcher</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -57,7 +57,7 @@
 
   html, body {
     margin: 0;
-    height: 100%;
+    min-height: 100%;
     background: var(--black);
     color: var(--text);
     font-family: 'Poppins', sans-serif;
@@ -234,6 +234,98 @@
     background: #eef8fa;
   }
 
+  /* ---------- Card-deck version picker (controller-friendly) ---------- */
+  .version-deck-wrap {
+    position: relative;
+    z-index: 3;
+    margin-top: 6px;
+    width: 100%;
+    max-width: 760px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .version-deck-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .deck-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: none;
+    background: rgba(200, 200, 200, 0.55);
+    backdrop-filter: blur(3px);
+    color: rgba(30, 30, 30, 0.7);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .deck-nav-btn:hover { background: rgba(220, 220, 220, 0.72); }
+  .deck-nav-btn:active { transform: translateY(-50%) scale(0.92); }
+  .deck-nav-left { left: 0; }
+  .deck-nav-right { right: 0; }
+
+  .version-deck-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 210px;
+    height: 240px;
+    background: #eef2f0;
+    border-radius: 16px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(.2,.8,.3,1), opacity 0.25s ease;
+    user-select: none;
+  }
+
+  .version-deck-card .deck-card-title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #333c3a;
+  }
+
+  .version-deck-card .deck-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #56605c;
+    border-top: 1px solid rgba(0,0,0,0.12);
+    padding-top: 12px;
+    width: 76%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .version-deck-card.is-active {
+    background: #f7faf9;
+    box-shadow: 0 20px 46px rgba(0,0,0,0.5);
+  }
+
+  .version-deck-card.is-active:hover { transform: translate(-50%, -50%) scale(1.03) !important; }
+
   .no-versions-note {
     position: relative;
     z-index: 3;
@@ -316,6 +408,35 @@
     margin-left: 8px;
     vertical-align: middle;
   }
+
+  .preset-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    border: 1px solid var(--text-dim);
+    border-radius: 20px;
+    padding: 1px 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .hide-btn {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--pill);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+    margin-right: 8px;
+  }
+  .hide-btn:hover { background: var(--pill); color: var(--text); }
+
+  .installed-row.is-hidden { opacity: 0.55; }
 
   /* ---------- Servers page (add form) ---------- */
   .servers-wrap { padding: 34px 26px 44px; max-width: 560px; }
@@ -454,16 +575,6 @@
   .status-line { margin-top: 10px; font-size: 13px; color: var(--text-dim); }
   .status-line.error { color: var(--danger); }
   .status-line.ok { color: var(--accent-light); }
-  .storage-warning-banner {
-    display: none;
-    background: rgba(198, 91, 79, 0.14);
-    border-bottom: 1px solid var(--danger);
-    color: var(--danger);
-    font-size: 13px;
-    padding: 10px 20px;
-    line-height: 1.5;
-  }
-  .storage-warning-banner strong { display: block; margin-bottom: 2px; }
 
   .installed-list { margin-top: 16px; }
 
@@ -587,11 +698,6 @@
     </div>
   </div>
 
-  <div class="storage-warning-banner" id="storageWarningBanner">
-    <strong>This browser isn't saving the launcher's data.</strong>
-    Builds, servers, and settings will reset every time you reload this page. This usually means storage is blocked for local (file://) pages — common in Private/Incognito windows, strict tracking-prevention modes (e.g. Brave Shields, Firefox strict mode), or a "block all cookies/site data" setting. Try a normal browser window, or allow site data for this page.
-  </div>
-
   <!-- ---------- HOME ---------- -->
   <section class="page active" id="page-home">
     <div class="hero" id="heroSection">
@@ -600,13 +706,18 @@
       <!-- Drop your own screenshot at eaglercraft-launcher_files/background.jpg and it'll show instead (White Mountains wallpaper only) -->
       <img class="hero-bg-img" id="heroBgImg" src="eaglercraft-launcher_files/background.jpg" alt="" onerror="this.style.display='none'">
       <div class="hero-haze"></div>
-      <div style="position:relative; z-index:3; display:flex; flex-direction:column; align-items:center;">
+      <div style="position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; width:100%;">
         <div class="launch-card" id="launchCard">
-          <div class="launch-title" id="launchTitle">LAUNCH EAGLER</div>
+          <div class="launch-title" id="launchTitle">PLAY</div>
           <div class="launch-version" id="launchVersionLabel">Click to find versions</div>
         </div>
         <div class="version-select-wrap" id="versionSelectWrap" style="display:none;">
           <select class="version-select" id="versionSelect"></select>
+        </div>
+        <div class="version-deck-wrap" id="versionDeckWrap" style="display:none;">
+          <button type="button" class="deck-nav-btn deck-nav-left" id="deckPrevBtn" aria-label="Previous version">‹</button>
+          <div class="version-deck-track" id="versionDeckTrack"></div>
+          <button type="button" class="deck-nav-btn deck-nav-right" id="deckNextBtn" aria-label="Next version">›</button>
         </div>
         <div class="no-versions-note" id="noVersionsNote">
           Click above to pick your versions folder — eaglercraft-launcher_files/versions
@@ -651,11 +762,12 @@
           <p class="empty-state">No servers saved yet.</p>
         </div>
 
-        <h3 style="margin-top:26px;">Websites</h3>
-        <p>Browse server lists on other sites, or add your own server lists or eaglercraft builds.</p>
+        <h3 style="margin-top:26px;">Server Websites</h3>
+        <p>Browse server lists on other sites, or add your own.</p>
         <div class="website-buttons">
           <button class="btn website-btn" type="button" data-url="https://topeaglerservers.com/">Topeagler Servers</button>
           <button class="btn website-btn" type="button" data-url="https://xyrios.com/minecraft/servers">Xyrios Servers</button>
+          <button class="btn website-btn" type="button" data-url="https://servers.eaglercraft.com/">Eagler Servers</button>
         </div>
 
         <div class="server-form" style="margin-top:16px;">
@@ -665,7 +777,7 @@
           </div>
           <div class="form-row">
             <label for="websiteUrlInput">Website URL</label>
-            <input type="text" class="form-input" id="websiteUrlInput" placeholder="e.g. https://example.com/servers">
+            <input type="text" class="form-input" id="websiteUrlInput" placeholder="e.g. https://xyrios.com/minecraft/servers">
           </div>
           <button class="btn" id="addWebsiteBtn" type="button">Add Website</button>
           <div class="status-line" id="websiteFormStatus"></div>
@@ -698,6 +810,12 @@
           </p>
         </div>
 
+        <h3 style="margin-top:22px;">Add local build file(s)</h3>
+        <p>Pick one or more Eaglercraft build <code>.html</code> files directly — they don't need to already be inside <code>eaglercraft-launcher_files/versions/</code>. For a build to keep working after a page reload, though, make sure a copy of it actually ends up in that folder (move it there, then click <strong>Refresh</strong> instead, if you want it to stick around long-term).</p>
+        <button class="btn" id="addBuildFilesBtn" type="button">Add Build File(s)</button>
+        <input type="file" id="addBuildFilesInput" accept=".html,.htm" multiple style="display:none;">
+        <div class="status-line" id="addBuildFilesStatus"></div>
+
         <h3 style="margin-top:22px;">Add a build link</h3>
         <p>Have an Eaglercraft build hosted online instead of a local file? Paste its link here and it'll show up alongside your local builds, ready to launch.</p>
         <div class="server-form">
@@ -714,7 +832,7 @@
         </div>
 
         <h3>Detected versions</h3>
-        <p>Scans <code>eaglercraft-launcher_files/versions/</code> for <code>.html</code> files, plus any build links you've added above.</p>
+        <p>Scans <code>eaglercraft-launcher_files/versions/</code> for <code>.html</code> files, plus anything added via the file picker or build links above.</p>
         <button class="btn" id="refreshBtn" type="button">Refresh</button>
         <button class="btn" id="clearAllBtn" type="button" style="background:transparent;border:1px solid var(--danger);color:var(--danger);">Clear All</button>
         <input type="file" id="versionsFolderInput" webkitdirectory directory multiple style="display:none;">
@@ -776,7 +894,7 @@
   <section class="page" id="page-settings">
     <div class="simple-page">
       <h2 class="section-title">Settings</h2>
-      <p class="section-sub">File Launcher - github.com/MehtabIsCool/File-Launcher</p>
+      <p class="section-sub">Placeholder for now — tell me what you'd like configurable here.</p>
       <div class="settings-row">
         <div>
           <div class="label">Light mode</div>
@@ -812,8 +930,19 @@
 
       <div class="settings-row">
         <div>
+          <div class="label">Open builds in a popup window</div>
+          <div class="desc">Launch builds in a separate popup window (no tabs/toolbar) instead of this tab. Takes priority over about:blank, but Picture-in-Picture wins if both are on.</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="popupToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div>
           <div class="label">Open builds in about:blank</div>
-          <div class="desc">Loads the build inside a blank tab instead of navigating to the file directly. Ignored if Picture-in-Picture is on.</div>
+          <div class="desc">Loads the build inside a blank tab instead of navigating to the file directly. Ignored if Picture-in-Picture or the popup window option is on.</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="blankTabToggle">
@@ -843,22 +972,15 @@
         </label>
       </div>
 
-      <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
+      <div class="settings-row">
         <div>
-          <div class="label">Auto-save build links to disk</div>
-          <div class="desc">Pick a builds.txt file once — every link you add or remove on the Builds page gets written to it automatically. Chromium browsers only (Chrome, Edge, Brave, Opera).</div>
+          <div class="label">Card deck version picker</div>
+          <div class="desc">Replaces the version dropdown on the Home page with a deck of cards you flip through with two buttons (or the left/right arrow keys) — easier to use with a controller than a dropdown.</div>
         </div>
-        <button type="button" class="btn" id="buildLinksAutoSaveBtn">Choose builds.txt…</button>
-        <div class="status-line" id="buildLinksAutoSaveStatus"></div>
-      </div>
-
-      <div class="settings-row" style="flex-direction:column; align-items:flex-start;">
-        <div>
-          <div class="label">Auto-save server websites to disk</div>
-          <div class="desc">Pick a server-websites.txt file once — every website you add or remove on the Builds page gets written to it automatically. Chromium browsers only (Chrome, Edge, Brave, Opera).</div>
-        </div>
-        <button type="button" class="btn" id="serverWebsitesAutoSaveBtn">Choose server-websites.txt…</button>
-        <div class="status-line" id="serverWebsitesAutoSaveStatus"></div>
+        <label class="switch">
+          <input type="checkbox" id="cardLayoutToggle">
+          <span class="switch-track"></span>
+        </label>
       </div>
 
       <div class="settings-row" style="flex-direction:column; align-items:flex-start; border-bottom:none;">
@@ -885,6 +1007,13 @@
           <button type="button" class="link-btn" id="removeCustomWallpaperBtn">Remove</button>
         </div>
         <input type="file" id="customWallpaperInput" accept="image/*" style="display:none;">
+        <div class="server-form" style="margin-top:14px; max-width:420px;">
+          <div class="form-row">
+            <label for="customWallpaperUrlInput">Or use a background image URL</label>
+            <input type="text" class="form-input" id="customWallpaperUrlInput" placeholder="https://example.com/image.jpg">
+          </div>
+          <button class="btn" id="setCustomWallpaperUrlBtn" type="button">Set from URL</button>
+        </div>
         <div class="status-line" id="wallpaperStatus"></div>
       </div>
     </div>
@@ -894,26 +1023,6 @@
 
 <script>
   // ============ Theme (light / dark mode) ============
-  // ============ Storage self-test ============
-  // localStorage.setItem can silently throw (private/incognito modes in some
-  // browsers, strict tracking-prevention, "block all cookies" settings) —
-  // when that happens every save above fails quietly and everything resets
-  // on the next reload. Catch that here and tell the user plainly instead of
-  // leaving them wondering why nothing sticks.
-  (function storageSelfTest() {
-    const probeKey = 'eaglercraft_launcher_storage_probe';
-    try {
-      localStorage.setItem(probeKey, '1');
-      const ok = localStorage.getItem(probeKey) === '1';
-      localStorage.removeItem(probeKey);
-      if (!ok) throw new Error('readback mismatch');
-    } catch (e) {
-      const banner = document.getElementById('storageWarningBanner');
-      if (banner) banner.style.display = 'block';
-      log('Storage self-test failed — saves will not persist: ' + e.message);
-    }
-  })();
-
   const THEME_STORAGE_KEY = 'eaglercraft_launcher_theme:' + location.pathname;
   const lightModeToggle = document.getElementById('lightModeToggle');
 
@@ -980,12 +1089,89 @@
     } catch (e) {
       log('Could not save the versions list: ' + e.message);
     }
-    if (typeof autoSaveBuildLinks === 'function') autoSaveBuildLinks();
   }
 
   // Remembered across page loads — a version stays listed even if its file
   // is later removed from disk, until you delete it here yourself.
   let versions = loadRememberedVersions();   // [{ name, path }]
+
+  // ============ Preset build links (loaded from a real .txt file, same as
+  // the online launcher) ============
+  // Fetches eaglercraft-launcher_files/versions/preset-builds.txt. This only
+  // works when the launcher is hosted (even a simple local web server) or
+  // opened in a browser that allows fetch() of file:// pages (Firefox does;
+  // Chrome doesn't when the file is opened directly by double-clicking it).
+  // Deleting a preset build in the launcher only hides it until the next
+  // reload — to remove it for good, edit that .txt file instead.
+  function parsePresetFile(text) {
+    return text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'))
+      .map(line => {
+        const i = line.indexOf('|');
+        if (i === -1) return null;
+        return { name: line.slice(0, i).trim(), value: line.slice(i + 1).trim() };
+      })
+      .filter(entry => entry && entry.name && entry.value);
+  }
+
+  async function loadPresetBuilds() {
+    try {
+      const res = await fetch('eaglercraft-launcher_files/versions/preset-builds.txt', { cache: 'no-store' });
+      if (!res.ok) return;
+      const entries = parsePresetFile(await res.text());
+      let added = 0;
+      entries.forEach(({ name, value }) => {
+        if (!versions.some(v => v.path === value)) {
+          versions.push({ name, path: value, type: 'link', preset: true });
+          added++;
+        }
+      });
+      if (added > 0) {
+        renderInstalledList();
+        renderHome();
+        log(`Loaded ${added} preset build link(s) from preset-builds.txt.`);
+      }
+    } catch (e) {
+      log('Preset builds not loaded via fetch() (expected when opened directly as a file:// page in Chrome) — hit Refresh on the Builds page instead, preset-builds.txt in that folder will be picked up automatically.');
+    }
+  }
+
+  loadPresetBuilds();
+
+  // ============ Hidden builds (kept out of the Home launch selector) ============
+  // Separate from Delete/Forget: a hidden build still shows in the Builds
+  // list (dimmed) so it can be unhidden later, it just won't appear as a
+  // choice on the Home page. Tracked by path so it works for local, linked,
+  // and preset builds alike, and persists across reloads.
+  const HIDDEN_BUILDS_STORAGE_KEY = 'eaglercraft_launcher_hidden_builds:' + location.pathname;
+
+  function loadHiddenBuilds() {
+    try {
+      const raw = localStorage.getItem(HIDDEN_BUILDS_STORAGE_KEY);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function saveHiddenBuilds() {
+    try {
+      localStorage.setItem(HIDDEN_BUILDS_STORAGE_KEY, JSON.stringify([...hiddenBuildPaths]));
+    } catch (e) {
+      log('Could not save hidden builds: ' + e.message);
+    }
+  }
+
+  let hiddenBuildPaths = loadHiddenBuilds();
+
+  function toggleBuildHidden(path) {
+    if (hiddenBuildPaths.has(path)) hiddenBuildPaths.delete(path);
+    else hiddenBuildPaths.add(path);
+    saveHiddenBuilds();
+    renderInstalledList();
+    renderHome();
+  }
 
   // Console page has been removed — activity now just goes to the browser console.
   function log(line) {
@@ -998,33 +1184,120 @@
   const launchVersionLabel = document.getElementById('launchVersionLabel');
   const versionSelectWrap = document.getElementById('versionSelectWrap');
   const versionSelect = document.getElementById('versionSelect');
+  const versionDeckWrap = document.getElementById('versionDeckWrap');
+  const versionDeckTrack = document.getElementById('versionDeckTrack');
+  const deckPrevBtn = document.getElementById('deckPrevBtn');
+  const deckNextBtn = document.getElementById('deckNextBtn');
   const noVersionsNote = document.getElementById('noVersionsNote');
+  const cardLayoutToggle = document.getElementById('cardLayoutToggle');
+
+  // The dropdown stays the underlying source of truth even when the card
+  // deck is shown — the deck just reads/steps its value, so the rest of the
+  // app (launch logic, mod injection, etc.) doesn't need to know which UI
+  // is currently visible. The deck replaces the PLAY button itself: the
+  // centered card IS the launch button, side cards are peeks you click (or
+  // arrow/step) your way over to.
+  function updateVersionPickerLayout() {
+    if (versionSelect.options.length === 0) return; // nothing to show — renderHome() already handled the empty state
+    const useCards = cardLayoutToggle.checked;
+    launchCard.style.display = useCards ? 'none' : '';
+    versionSelectWrap.style.display = useCards ? 'none' : 'block';
+    versionDeckWrap.style.display = useCards ? 'flex' : 'none';
+    if (useCards) renderDeckCards();
+  }
+
+  function renderDeckCards() {
+    const opts = Array.from(versionSelect.options);
+    versionDeckTrack.innerHTML = '';
+    if (opts.length === 0) return;
+    let idx = opts.findIndex(o => o.value === versionSelect.value);
+    if (idx === -1) idx = 0;
+
+    const spread = 2; // up to 2 peeking cards on each side of the active one
+    const seen = new Set();
+    for (let offset = -spread; offset <= spread; offset++) {
+      const i = ((idx + offset) % opts.length + opts.length) % opts.length;
+      if (seen.has(i)) continue; // avoid duplicate cards when there are few versions
+      seen.add(i);
+
+      const card = document.createElement('div');
+      const isActive = offset === 0;
+      card.className = 'version-deck-card' + (isActive ? ' is-active' : '');
+      card.innerHTML = `<div class="deck-card-title">${isActive ? 'PLAY' : ''}</div><div class="deck-card-name">${opts[i].textContent}</div>`;
+      const scale = 1 - Math.abs(offset) * 0.14;
+      card.style.transform = `translate(-50%, -50%) translateX(${offset * 150}px) scale(${scale})`;
+      card.style.opacity = isActive ? '1' : (Math.abs(offset) === 1 ? '0.8' : '0.5');
+      card.style.zIndex = String(10 - Math.abs(offset));
+      card.addEventListener('click', () => {
+        if (isActive) {
+          launchCard.click(); // same launch logic as the normal PLAY button
+        } else {
+          versionSelect.value = opts[i].value;
+          versionSelect.dispatchEvent(new Event('change'));
+        }
+      });
+      versionDeckTrack.appendChild(card);
+    }
+  }
+
+  function stepVersionDeck(delta) {
+    const opts = Array.from(versionSelect.options);
+    if (opts.length === 0) return;
+    let idx = opts.findIndex(o => o.value === versionSelect.value);
+    idx = (idx + delta + opts.length) % opts.length;
+    versionSelect.value = opts[idx].value;
+    versionSelect.dispatchEvent(new Event('change'));
+  }
+
+  deckPrevBtn.addEventListener('click', () => stepVersionDeck(-1));
+  deckNextBtn.addEventListener('click', () => stepVersionDeck(1));
+
+  // Left/right arrow keys step the deck too — handy for a controller mapped
+  // to arrow keys, or just a keyboard. Only active while on the Home tab,
+  // the deck layout is on, and focus isn't inside a text input.
+  document.addEventListener('keydown', (e) => {
+    if (cardLayoutToggle.checked !== true) return;
+    if (!document.getElementById('page-home').classList.contains('active')) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.key === 'ArrowLeft') { stepVersionDeck(-1); e.preventDefault(); }
+    else if (e.key === 'ArrowRight') { stepVersionDeck(1); e.preventDefault(); }
+  });
 
   function renderHome() {
-    if (versions.length === 0) {
+    const visibleVersions = versions.filter(v => !hiddenBuildPaths.has(v.path));
+    if (visibleVersions.length === 0) {
       launchCard.classList.add('disabled');
-      launchVersionLabel.textContent = 'Click to find versions';
+      launchVersionLabel.textContent = versions.length > 0 ? 'All versions hidden' : 'Click to find versions';
+      launchCard.style.display = '';
       versionSelectWrap.style.display = 'none';
+      versionDeckWrap.style.display = 'none';
       noVersionsNote.style.display = 'block';
+      noVersionsNote.textContent = versions.length > 0
+        ? 'Every build is hidden — unhide one on the Builds page to launch it.'
+        : 'Click above to pick your versions folder — eaglercraft-launcher_files/versions';
       return;
     }
     launchCard.classList.remove('disabled');
     noVersionsNote.style.display = 'none';
-    versionSelectWrap.style.display = 'block';
 
     versionSelect.innerHTML = '';
-    versions.forEach(v => {
+    visibleVersions.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.name;
       opt.textContent = v.name;
       versionSelect.appendChild(opt);
     });
-    launchVersionLabel.textContent = versionSelect.value || versions[0].name;
+    launchVersionLabel.textContent = versionSelect.value || visibleVersions[0].name;
+    updateVersionPickerLayout();
   }
 
   versionSelect.addEventListener('change', () => {
     launchVersionLabel.textContent = versionSelect.value;
+    if (cardLayoutToggle.checked) renderDeckCards();
   });
+
+  cardLayoutToggle.addEventListener('change', updateVersionPickerLayout);
 
   // ============ Mod injection (EaglerMobile) ============
   // File objects are only available for versions found in *this* session's
@@ -1138,16 +1411,50 @@
     }
   }
 
+  async function launchInPopup(v) {
+    // Must be requested synchronously-ish within the click gesture, same as
+    // the about:blank window — open first, fill in the URL after.
+    const features = 'popup=yes,width=1280,height=800,left=80,top=80,menubar=no,toolbar=no,location=no,status=no';
+    const win = window.open('about:blank', '_blank', features);
+    if (!win) {
+      log('Popup blocked — allow popups for this page to use popup window launch. Launching normally instead.');
+      launchNormally(v);
+      return;
+    }
+    try {
+      const url = await getLaunchUrl(v);
+      win.document.title = v.name;
+      win.document.body.style.margin = '0';
+      win.document.body.style.background = '#000';
+      const iframe = win.document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; border:none;';
+      win.document.body.appendChild(iframe);
+      log(`Opened ${v.name} in a popup window.`);
+    } catch (e) {
+      log('Could not set up the popup window (' + e.message + ') — launching normally instead.');
+      win.close();
+      launchNormally(v);
+    }
+  }
+
   launchCard.addEventListener('click', () => {
     if (versions.length === 0) {
       // No versions found yet — this click doubles as the scan trigger.
       versionsFolderInput.click();
       return;
     }
-    const v = versions.find(v => v.name === versionSelect.value) || versions[0];
+    const visibleVersions = versions.filter(v => !hiddenBuildPaths.has(v.path));
+    if (visibleVersions.length === 0) {
+      log('Every build is hidden — unhide one on the Builds page to launch it.');
+      return;
+    }
+    const v = visibleVersions.find(v => v.name === versionSelect.value) || visibleVersions[0];
     log(`Launching ${v.name}...`);
     if (document.getElementById('pipToggle').checked) {
       launchInPictureInPicture(v);
+    } else if (document.getElementById('popupToggle').checked) {
+      launchInPopup(v);
     } else if (document.getElementById('blankTabToggle').checked) {
       launchInAboutBlank(v);
     } else {
@@ -1179,12 +1486,26 @@
     installedList.innerHTML = '';
     versions.forEach(v => {
       const row = document.createElement('div');
-      row.className = 'installed-row';
-      const badge = v.type === 'link' ? '<span class="build-link-badge">WEB LINK</span>' : '';
+      const isHidden = hiddenBuildPaths.has(v.path);
+      row.className = 'installed-row' + (isHidden ? ' is-hidden' : '');
+      let badge = '';
+      if (v.type === 'link') badge += '<span class="build-link-badge">WEB LINK</span>';
+      if (v.preset) badge += '<span class="preset-badge">PRESET</span>';
+      if (isHidden) badge += '<span class="preset-badge">HIDDEN</span>';
+      const deleteTitle = v.preset
+        ? "Removes it for now — it comes back on reload unless removed from preset-builds.txt. Use Hide instead to keep it off the Home page for good."
+        : 'Forget this version';
       row.innerHTML = `
         <div><div class="name">${v.name}${badge}</div><div class="path">${v.path}</div></div>
-        <button class="delete-btn" type="button" title="Forget this version">Delete</button>
+        <div style="display:flex; align-items:center;">
+          <button class="hide-btn" type="button" title="Keep this build out of the Home page's launch selector">${isHidden ? 'Unhide' : 'Hide'}</button>
+          <button class="delete-btn" type="button" title="${deleteTitle}">Delete</button>
+        </div>
       `;
+      row.querySelector('.hide-btn').addEventListener('click', () => {
+        toggleBuildHidden(v.path);
+        log(`${hiddenBuildPaths.has(v.path) ? 'Hid' : 'Unhid'} version: ${v.name}`);
+      });
       row.querySelector('.delete-btn').addEventListener('click', () => {
         versions = versions.filter(x => x.path !== v.path);
         saveRememberedVersions();
@@ -1209,7 +1530,7 @@
     log('Cleared all remembered versions.');
   });
 
-  versionsFolderInput.addEventListener('change', () => {
+  versionsFolderInput.addEventListener('change', async () => {
     const files = Array.from(versionsFolderInput.files);
     if (files.length === 0) return;
 
@@ -1219,7 +1540,12 @@
     // back loose files with no relative path; treat any selected .html
     // file as a build in that case.
     const found = [];
+    let presetBuildsFile = null;
+    let presetServersFile = null;
     files.forEach(file => {
+      const lowerName = file.name.toLowerCase();
+      if (lowerName === 'preset-builds.txt') { presetBuildsFile = file; return; }
+      if (lowerName === 'preset-servers.txt') { presetServersFile = file; return; }
       if (!/\.html?$/i.test(file.name)) return;
 
       if (file.webkitRelativePath) {
@@ -1245,21 +1571,115 @@
         newCount++;
       }
     });
-    saveRememberedVersions();
 
-    if (found.length === 0) {
+    // preset-builds.txt / preset-servers.txt, if they were sitting right
+    // there in the picked folder, get read directly through the File API
+    // instead of fetch() — this is what makes presets work when opened as
+    // a plain file:// page in Chrome, where fetch() of local files is
+    // blocked outright. Requires a (re-)scan to pick up edits made to
+    // those files, same limitation as everything else that reads file
+    // content in this launcher.
+    let presetBuildsAdded = 0;
+    if (presetBuildsFile) {
+      try {
+        const entries = parsePresetFile(await presetBuildsFile.text());
+        entries.forEach(({ name, value }) => {
+          if (!versions.some(v => v.path === value)) {
+            versions.push({ name, path: value, type: 'link', preset: true });
+            presetBuildsAdded++;
+          }
+        });
+      } catch (e) {
+        log('Could not read preset-builds.txt: ' + e.message);
+      }
+    }
+
+    let presetServersAdded = 0;
+    if (presetServersFile) {
+      try {
+        const entries = parsePresetFile(await presetServersFile.text());
+        entries.forEach(({ name, value }) => {
+          if (!servers.some(s => s.ip === value)) {
+            servers.push({ name, ip: value, preset: true });
+            presetServersAdded++;
+          }
+        });
+      } catch (e) {
+        log('Could not read preset-servers.txt: ' + e.message);
+      }
+    }
+
+    saveRememberedVersions();
+    if (presetServersAdded > 0) saveServers();
+
+    if (found.length === 0 && presetBuildsAdded === 0 && presetServersAdded === 0 && !presetBuildsFile && !presetServersFile) {
       scanStatus.textContent = 'Scanned — no .html files found. If you picked a folder, make sure it\'s "versions" itself; if you picked files, select the build .html file(s) directly.';
       scanStatus.classList.remove('ok');
       scanStatus.classList.add('error');
     } else {
-      scanStatus.textContent = `Scanned — ${found.length} file(s) found, ${newCount} newly added.`;
+      const parts = [`${found.length} build file(s) found, ${newCount} newly added`];
+      if (presetBuildsFile) parts.push(`${presetBuildsAdded} new preset build(s)`);
+      if (presetServersFile) parts.push(`${presetServersAdded} new preset server(s)`);
+      scanStatus.textContent = 'Scanned — ' + parts.join(', ') + '.';
       scanStatus.classList.remove('error');
       scanStatus.classList.add('ok');
     }
-    log(`Scanned versions folder — found ${found.length} .html file(s), ${newCount} new.`);
+    log(`Scanned versions folder — found ${found.length} .html file(s), ${newCount} new` +
+      (presetBuildsFile ? `, ${presetBuildsAdded} new preset build(s)` : '') +
+      (presetServersFile ? `, ${presetServersAdded} new preset server(s)` : '') + '.');
     renderInstalledList();
     renderHome();
+    if (presetServersAdded > 0) renderServers();
     versionsFolderInput.value = '';
+  });
+
+  // ============ Builds tab: add local build file(s) directly ============
+  // A plain multi-file input (no webkitdirectory) so builds can be picked
+  // from anywhere on disk, not just from inside eaglercraft-launcher_files/versions/.
+  // The picked File is cached for this session so it launches (and can be
+  // mod-injected) right away, same as a folder scan. It'll only keep working
+  // after a page reload if a copy of the file also actually sits in that
+  // versions folder — otherwise it just needs to be re-added here again.
+  const addBuildFilesBtn = document.getElementById('addBuildFilesBtn');
+  const addBuildFilesInput = document.getElementById('addBuildFilesInput');
+  const addBuildFilesStatus = document.getElementById('addBuildFilesStatus');
+
+  addBuildFilesBtn.addEventListener('click', () => addBuildFilesInput.click());
+
+  addBuildFilesInput.addEventListener('change', () => {
+    const files = Array.from(addBuildFilesInput.files);
+    if (files.length === 0) return;
+
+    const found = [];
+    files.forEach(file => {
+      if (!/\.html?$/i.test(file.name)) return;
+      const path = `${VERSIONS_DIR}/${file.name}`;
+      found.push({ name: file.name.replace(/\.html?$/i, ''), path });
+      versionFiles[path] = file;
+    });
+
+    let newCount = 0;
+    found.forEach(f => {
+      if (!versions.some(v => v.path === f.path)) {
+        versions.push(f);
+        newCount++;
+      }
+    });
+    saveRememberedVersions();
+
+    if (found.length === 0) {
+      addBuildFilesStatus.textContent = 'No .html files in that selection.';
+      addBuildFilesStatus.classList.remove('ok');
+      addBuildFilesStatus.classList.add('error');
+    } else {
+      addBuildFilesStatus.textContent = `Added ${newCount} new build(s) (${found.length} selected).`;
+      addBuildFilesStatus.classList.remove('error');
+      addBuildFilesStatus.classList.add('ok');
+    }
+    log(`Added ${newCount} build file(s) via file picker.`);
+    renderInstalledList();
+    renderHome();
+    addBuildFilesInput.value = '';
   });
 
   // ============ Builds tab: add a build by link ============
@@ -1300,6 +1720,52 @@
   renderInstalledList();
   renderHome();
 
+  // ============ Settings toggles persistence ============
+  // Plain on/off switches (new tab, PiP, popup, blank tab, mod injection,
+  // card deck) had no memory at all before — every refresh silently reset
+  // them to off. This saves and restores all of them together.
+  const SETTINGS_STORAGE_KEY = 'eaglercraft_launcher_settings:' + location.pathname;
+  const SETTINGS_TOGGLE_IDS = [
+    'newTabToggle', 'pipToggle', 'popupToggle', 'blankTabToggle',
+    'eaglerMobileToggle', 'eaglerConsoleToggle', 'cardLayoutToggle'
+  ];
+
+  function loadToggleSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveToggleSettings() {
+    try {
+      const state = {};
+      SETTINGS_TOGGLE_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) state[id] = el.checked;
+      });
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      log('Could not save settings: ' + e.message);
+    }
+  }
+
+  (function restoreToggleSettings() {
+    const saved = loadToggleSettings();
+    SETTINGS_TOGGLE_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && typeof saved[id] === 'boolean') el.checked = saved[id];
+    });
+    updateVersionPickerLayout();
+  })();
+
+  SETTINGS_TOGGLE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', saveToggleSettings);
+  });
+
   // ============ Optional custom logo override ============
   // If you drop a file at eaglercraft-launcher_files/logo.png, it replaces the built-in SVG icon.
   (function tryCustomLogo() {
@@ -1333,6 +1799,33 @@
 
   let servers = loadServers(); // [{ name, ip }]
 
+  // ============ Preset servers (loaded from a real .txt file, same as the
+  // online launcher) ============
+  // Same fetch()-based approach and same caveat as loadPresetBuilds() above.
+  async function loadPresetServers() {
+    try {
+      const res = await fetch('eaglercraft-launcher_files/versions/preset-servers.txt', { cache: 'no-store' });
+      if (!res.ok) return;
+      const entries = parsePresetFile(await res.text());
+      let added = 0;
+      entries.forEach(({ name, value }) => {
+        if (!servers.some(s => s.ip === value)) {
+          servers.push({ name, ip: value, preset: true });
+          added++;
+        }
+      });
+      if (added > 0) {
+        renderServers();
+        log(`Loaded ${added} preset server(s) from preset-servers.txt.`);
+      }
+    } catch (e) {
+      log('Preset servers not loaded via fetch() (expected when opened directly as a file:// page in Chrome) — hit Refresh on the Builds page instead, preset-servers.txt in that folder will be picked up automatically.');
+    }
+  }
+
+  loadPresetServers();
+
+
   const serverNameInput = document.getElementById('serverNameInput');
   const serverIpInput = document.getElementById('serverIpInput');
   const addServerBtn = document.getElementById('addServerBtn');
@@ -1351,10 +1844,10 @@
       </div>
       <div class="server-actions">
         <button class="copy-btn" type="button">Copy IP</button>
-        <button class="delete-btn" type="button">Delete</button>
+        <button class="delete-btn" type="button" title="${s.preset ? 'It will come back on reload unless removed from preset-servers.txt' : 'Remove this server'}">Delete</button>
       </div>
     `;
-    row.querySelector('.server-name').textContent = s.name;
+    row.querySelector('.server-name').innerHTML = s.name + (s.preset ? ' <span class="preset-badge">PRESET</span>' : '');
     row.querySelector('.server-ip').textContent = s.ip;
     row.querySelector('.copy-btn').addEventListener('click', () => {
       navigator.clipboard.writeText(s.ip).then(() => {
@@ -1441,7 +1934,6 @@
     } catch (e) {
       log('Could not save the websites list: ' + e.message);
     }
-    if (typeof autoSaveServerWebsites === 'function') autoSaveServerWebsites();
   }
 
   let customWebsites = loadWebsites(); // [{ name, url }]
@@ -1508,186 +2000,6 @@
   });
 
   renderWebsites();
-
-  // ============ Auto-save to disk (build links + server websites) ============
-  // Backs up the "add build by link" list and the server-websites list to
-  // real .txt files on disk, written automatically every time either list
-  // changes — a second copy that survives even if the browser's localStorage
-  // gets cleared or blocked. Uses the File System Access API, which is
-  // Chromium-only (Chrome, Edge, Brave, Opera) — Firefox and Safari don't
-  // support writable file handles, so this feature quietly disables itself
-  // there. The handle itself is remembered in IndexedDB so a reconnect isn't
-  // needed every single page load, but the browser can still ask you to
-  // re-approve permission occasionally — that's a browser security rule
-  // (write permission can't be silently re-granted forever), not a bug here.
-  const FS_ACCESS_SUPPORTED = typeof window.showSaveFilePicker === 'function';
-
-  const IDB_NAME = 'eaglercraft_launcher_db';
-  const IDB_STORE = 'file_handles';
-  // Handles are scoped to this file's own path for the same reason the
-  // localStorage keys above are — one browser profile can have several
-  // copies of this launcher on disk.
-  const BUILD_LINKS_HANDLE_KEY = 'build_links_handle:' + location.pathname;
-  const SERVER_WEBSITES_HANDLE_KEY = 'server_websites_handle:' + location.pathname;
-
-  function idbOpen() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function idbSetHandle(key, handle) {
-    try {
-      const db = await idbOpen();
-      await new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, 'readwrite');
-        tx.objectStore(IDB_STORE).put(handle, key);
-        tx.oncomplete = resolve;
-        tx.onerror = () => reject(tx.error);
-      });
-    } catch (e) { /* best effort — auto-save just won't survive a reload */ }
-  }
-
-  async function idbGetHandle(key) {
-    try {
-      const db = await idbOpen();
-      return await new Promise((resolve, reject) => {
-        const tx = db.transaction(IDB_STORE, 'readonly');
-        const req = tx.objectStore(IDB_STORE).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => reject(req.error);
-      });
-    } catch (e) {
-      return null;
-    }
-  }
-
-  let buildLinksFileHandle = null;
-  let serverWebsitesFileHandle = null;
-
-  function buildLinksTxtContent() {
-    const links = versions.filter(v => v.type === 'link');
-    if (links.length === 0) return '# No build links added yet.\n';
-    return links.map(v => `${v.name} | ${v.path}`).join('\n') + '\n';
-  }
-
-  function serverWebsitesTxtContent() {
-    if (customWebsites.length === 0) return '# No server websites added yet.\n';
-    return customWebsites.map(w => `${w.name} | ${w.url}`).join('\n') + '\n';
-  }
-
-  async function writeToHandle(handle, content, statusEl, label) {
-    try {
-      const writable = await handle.createWritable();
-      await writable.write(content);
-      await writable.close();
-      return true;
-    } catch (e) {
-      if (statusEl) {
-        statusEl.textContent = `Couldn't write to ${label}: ${e.message}`;
-        statusEl.classList.remove('ok');
-        statusEl.classList.add('error');
-      }
-      log(`Auto-save write failed for ${label}: ${e.message}`);
-      return false;
-    }
-  }
-
-  async function autoSaveBuildLinks() {
-    if (!buildLinksFileHandle) return;
-    const ok = await writeToHandle(buildLinksFileHandle, buildLinksTxtContent(), buildLinksAutoSaveStatus, 'builds.txt');
-    if (ok) {
-      buildLinksAutoSaveStatus.textContent = `Auto-saving to ${buildLinksFileHandle.name}`;
-      buildLinksAutoSaveStatus.classList.remove('error');
-      buildLinksAutoSaveStatus.classList.add('ok');
-    }
-  }
-
-  async function autoSaveServerWebsites() {
-    if (!serverWebsitesFileHandle) return;
-    const ok = await writeToHandle(serverWebsitesFileHandle, serverWebsitesTxtContent(), serverWebsitesAutoSaveStatus, 'server-websites.txt');
-    if (ok) {
-      serverWebsitesAutoSaveStatus.textContent = `Auto-saving to ${serverWebsitesFileHandle.name}`;
-      serverWebsitesAutoSaveStatus.classList.remove('error');
-      serverWebsitesAutoSaveStatus.classList.add('ok');
-    }
-  }
-
-  const buildLinksAutoSaveBtn = document.getElementById('buildLinksAutoSaveBtn');
-  const buildLinksAutoSaveStatus = document.getElementById('buildLinksAutoSaveStatus');
-  const serverWebsitesAutoSaveBtn = document.getElementById('serverWebsitesAutoSaveBtn');
-  const serverWebsitesAutoSaveStatus = document.getElementById('serverWebsitesAutoSaveStatus');
-
-  if (!FS_ACCESS_SUPPORTED) {
-    [buildLinksAutoSaveBtn, serverWebsitesAutoSaveBtn].forEach(btn => { btn.disabled = true; });
-    buildLinksAutoSaveStatus.textContent = 'Not supported in this browser — try Chrome, Edge, Brave, or Opera.';
-    buildLinksAutoSaveStatus.classList.add('error');
-    serverWebsitesAutoSaveStatus.textContent = 'Not supported in this browser — try Chrome, Edge, Brave, or Opera.';
-    serverWebsitesAutoSaveStatus.classList.add('error');
-  } else {
-    buildLinksAutoSaveBtn.addEventListener('click', async () => {
-      try {
-        buildLinksFileHandle = await window.showSaveFilePicker({
-          suggestedName: 'builds.txt',
-          types: [{ description: 'Text file', accept: { 'text/plain': ['.txt'] } }]
-        });
-        await idbSetHandle(BUILD_LINKS_HANDLE_KEY, buildLinksFileHandle);
-        await autoSaveBuildLinks();
-        log(`Connected build-links auto-save file: ${buildLinksFileHandle.name}`);
-      } catch (e) {
-        if (e.name !== 'AbortError') log('Could not connect build-links file: ' + e.message);
-      }
-    });
-
-    serverWebsitesAutoSaveBtn.addEventListener('click', async () => {
-      try {
-        serverWebsitesFileHandle = await window.showSaveFilePicker({
-          suggestedName: 'server-websites.txt',
-          types: [{ description: 'Text file', accept: { 'text/plain': ['.txt'] } }]
-        });
-        await idbSetHandle(SERVER_WEBSITES_HANDLE_KEY, serverWebsitesFileHandle);
-        await autoSaveServerWebsites();
-        log(`Connected server-websites auto-save file: ${serverWebsitesFileHandle.name}`);
-      } catch (e) {
-        if (e.name !== 'AbortError') log('Could not connect server-websites file: ' + e.message);
-      }
-    });
-
-    // Try to silently reconnect to a previously-picked file without prompting
-    // the user again. queryPermission (unlike requestPermission) doesn't
-    // need a user gesture, so this can run right away on page load.
-    (async function reconnectHandles() {
-      const savedBuilds = await idbGetHandle(BUILD_LINKS_HANDLE_KEY);
-      if (savedBuilds) {
-        try {
-          if ((await savedBuilds.queryPermission({ mode: 'readwrite' })) === 'granted') {
-            buildLinksFileHandle = savedBuilds;
-            buildLinksAutoSaveStatus.textContent = `Auto-saving to ${savedBuilds.name}`;
-            buildLinksAutoSaveStatus.classList.add('ok');
-            await autoSaveBuildLinks();
-          } else {
-            buildLinksAutoSaveStatus.textContent = `Previously connected to ${savedBuilds.name} — click to reconnect.`;
-          }
-        } catch (e) { /* handle no longer valid — ignore, button still works */ }
-      }
-      const savedWebsites = await idbGetHandle(SERVER_WEBSITES_HANDLE_KEY);
-      if (savedWebsites) {
-        try {
-          if ((await savedWebsites.queryPermission({ mode: 'readwrite' })) === 'granted') {
-            serverWebsitesFileHandle = savedWebsites;
-            serverWebsitesAutoSaveStatus.textContent = `Auto-saving to ${savedWebsites.name}`;
-            serverWebsitesAutoSaveStatus.classList.add('ok');
-            await autoSaveServerWebsites();
-          } else {
-            serverWebsitesAutoSaveStatus.textContent = `Previously connected to ${savedWebsites.name} — click to reconnect.`;
-          }
-        } catch (e) { /* handle no longer valid — ignore, button still works */ }
-      }
-    })();
-  }
 
   // ============ Wallpaper picker ============
   const WALLPAPER_STORAGE_KEY = 'eaglercraft_launcher_wallpaper:' + location.pathname;
@@ -1827,6 +2139,28 @@
     };
     reader.readAsDataURL(file);
     customWallpaperInput.value = '';
+  });
+
+  const customWallpaperUrlInput = document.getElementById('customWallpaperUrlInput');
+  const setCustomWallpaperUrlBtn = document.getElementById('setCustomWallpaperUrlBtn');
+
+  setCustomWallpaperUrlBtn.addEventListener('click', () => {
+    const url = customWallpaperUrlInput.value.trim();
+    if (!url) {
+      wallpaperStatus.textContent = 'Enter an image URL first.';
+      wallpaperStatus.classList.remove('ok');
+      wallpaperStatus.classList.add('error');
+      return;
+    }
+    wallpaperSetting.mode = 'custom';
+    wallpaperSetting.customData = normalizeUrl(url);
+    saveWallpaperSetting();
+    applyWallpaper();
+    customWallpaperUrlInput.value = '';
+    wallpaperStatus.textContent = 'Custom background set from URL.';
+    wallpaperStatus.classList.remove('error');
+    wallpaperStatus.classList.add('ok');
+    log(`Custom wallpaper set from URL: ${wallpaperSetting.customData}`);
   });
 
   applyWallpaper();
